@@ -11,6 +11,13 @@ A PC with Linux or Windows, and an USB-C cable is all you need to program the Po
 Visual Studio Code can be freely downloaded and from the [CODE site](https://code.visualstudio.com/)
 Once installed on your PC, select and install PlatformIO from the "Extensions Marketplace".
 
+### GIT support
+
+To use the code in the polverine repository click on the "Source Control" icon in VSCode interface and follow instructions to download and install the latest GIT version.
+
+Then enter  `https://github.com/BlackIoT/Polverine.git` to connect to BlackIoT Polverine GitHub repository and download code samples and instructions. 
+
+
 ### Custom Embedded Board
 Reference:
 [Custom embedded board](https://docs.platformio.org/en/stable/platforms/creating_board.html)
@@ -18,6 +25,8 @@ Reference:
 The custom embedded board JSON file for polverine board to be used in PlatoformIO environmentis in folder /boards .
 
 1) Create `boards` directory in core_dir if it doesn’t exist.
+    - in Windows: `%HOMEPATH%\.platformio`
+    - in Linux: `~/.platformio`
 2) Copy `polverine.json` file in this boards directory.
 3) Search available boards via `pio boards` command. You should see `polverine` board.
 
