@@ -1,0 +1,265 @@
+[
+    {
+        "id": "3d513226ae0b4dcf",
+        "type": "tab",
+        "label": "PolverineServer",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "dd8868760abdea62",
+        "type": "mqtt-broker",
+        "name": "",
+        "broker": "localhost",
+        "port": 1883,
+        "clientid": "osiris",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "5",
+        "keepalive": 60,
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "bf56a89fe00aa932",
+        "type": "mongodb4-client",
+        "name": "POLVERINE_LOCAL",
+        "protocol": "mongodb",
+        "hostname": "localhost",
+        "port": "",
+        "dbName": "Polverine",
+        "appName": "",
+        "authSource": "",
+        "authMechanism": "DEFAULT",
+        "tls": false,
+        "tlsCAFile": "",
+        "tlsCertificateKeyFile": "",
+        "tlsInsecure": false,
+        "connectTimeoutMS": "30000",
+        "socketTimeoutMS": "0",
+        "minPoolSize": "0",
+        "maxPoolSize": "100",
+        "maxIdleTimeMS": "0",
+        "uri": "",
+        "advanced": "{}",
+        "uriTabActive": "tab-uri-simple"
+    },
+    {
+        "id": "29def00dca025cc2",
+        "type": "mqtt in",
+        "z": "3d513226ae0b4dcf",
+        "name": "",
+        "topic": "polverine/+/bme690",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "dd8868760abdea62",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 290,
+        "y": 120,
+        "wires": [
+            [
+                "43dca7bf270c6fec",
+                "3f0e8519289e884c"
+            ]
+        ]
+    },
+    {
+        "id": "43dca7bf270c6fec",
+        "type": "debug",
+        "z": "3d513226ae0b4dcf",
+        "name": "debug 1",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "0418aa24c8a4c369",
+        "type": "mqtt in",
+        "z": "3d513226ae0b4dcf",
+        "name": "",
+        "topic": "polverine/+/bmv080",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "dd8868760abdea62",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 290,
+        "y": 220,
+        "wires": [
+            [
+                "63c4ede5f10d34b8",
+                "53f356711dbd539b"
+            ]
+        ]
+    },
+    {
+        "id": "63c4ede5f10d34b8",
+        "type": "debug",
+        "z": "3d513226ae0b4dcf",
+        "name": "debug 2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 220,
+        "wires": []
+    },
+    {
+        "id": "bff581fb754de6b5",
+        "type": "mongodb4",
+        "z": "3d513226ae0b4dcf",
+        "clientNode": "bf56a89fe00aa932",
+        "mode": "collection",
+        "collection": "",
+        "operation": "",
+        "output": "toArray",
+        "maxTimeMS": "0",
+        "handleDocId": false,
+        "name": "",
+        "x": 995,
+        "y": 120,
+        "wires": [
+            []
+        ],
+        "l": false
+    },
+    {
+        "id": "53f356711dbd539b",
+        "type": "function",
+        "z": "3d513226ae0b4dcf",
+        "name": "Particulate",
+        "func": "    msg = {\n        collection: \"DataParticulate\",\n        operation: \"insertOne\",\n        payload: [{ timestamp: new Date(), data: msg.payload }]\n    }\n    return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 180,
+        "wires": [
+            [
+                "bff581fb754de6b5"
+            ]
+        ]
+    },
+    {
+        "id": "3f0e8519289e884c",
+        "type": "function",
+        "z": "3d513226ae0b4dcf",
+        "name": "Environment",
+        "func": "    msg = {\n        collection: \"DataEnvironment\",\n        operation: \"insertOne\",\n        payload: [{ timestamp: new Date(), data: msg.payload }]\n    }\n    return msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 790,
+        "y": 80,
+        "wires": [
+            [
+                "bff581fb754de6b5"
+            ]
+        ]
+    },
+    {
+        "id": "bd2a42dc66652d34",
+        "type": "function",
+        "z": "3d513226ae0b4dcf",
+        "name": "Bosch SensorEnviro",
+        "func": "\nmsg = {\n collection : \"Weather\",\n operation : \"insertOne\",\n payload : [{timestamp : new Date(), data : msg.payload} ]\n}\n\nreturn msg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 530,
+        "y": 360,
+        "wires": [
+            [
+                "ef90439cad72da76",
+                "bff581fb754de6b5"
+            ]
+        ]
+    },
+    {
+        "id": "1443d560265732bf",
+        "type": "comment",
+        "z": "3d513226ae0b4dcf",
+        "name": "Lettura dati meteo da openweathermap",
+        "info": "",
+        "x": 350,
+        "y": 320,
+        "wires": []
+    },
+    {
+        "id": "ef90439cad72da76",
+        "type": "debug",
+        "z": "3d513226ae0b4dcf",
+        "name": "debug 3",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "02de20ec4b358d89",
+        "type": "openweathermap in",
+        "z": "3d513226ae0b4dcf",
+        "name": "Office",
+        "wtype": "current",
+        "lon": "9.222673826918157",
+        "lat": "45.51426769586373",
+        "city": "",
+        "country": "",
+        "language": "en",
+        "x": 250,
+        "y": 360,
+        "wires": [
+            [
+                "bd2a42dc66652d34"
+            ]
+        ]
+    }
+]

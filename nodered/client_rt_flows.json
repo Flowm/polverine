@@ -1,0 +1,683 @@
+[
+    {
+        "id": "244fa03e349f634a",
+        "type": "tab",
+        "label": "Realtime",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "55b183b9cb3663da",
+        "type": "ui-base",
+        "name": "My Dashboard",
+        "path": "/dashboard",
+        "appIcon": "",
+        "includeClientData": true,
+        "acceptsClientConfig": [
+            "ui-notification",
+            "ui-control"
+        ],
+        "showPathInSidebar": false,
+        "headerContent": "page",
+        "navigationStyle": "default",
+        "titleBarStyle": "default",
+        "showReconnectNotification": true,
+        "notificationDisplayTime": 1,
+        "showDisconnectNotification": true
+    },
+    {
+        "id": "7c7fdc802ee774d0",
+        "type": "ui-theme",
+        "name": "Default Theme",
+        "colors": {
+            "surface": "#ffffff",
+            "primary": "#0094CE",
+            "bgPage": "#eeeeee",
+            "groupBg": "#ffffff",
+            "groupOutline": "#cccccc"
+        },
+        "sizes": {
+            "density": "default",
+            "pagePadding": "12px",
+            "groupGap": "12px",
+            "groupBorderRadius": "4px",
+            "widgetGap": "12px"
+        }
+    },
+    {
+        "id": "06c2e49ebfc5e879",
+        "type": "serial-port",
+        "name": "",
+        "serialport": "/dev/ttyACM0",
+        "serialbaud": "230400",
+        "databits": 8,
+        "parity": "none",
+        "stopbits": 1,
+        "waitfor": "",
+        "dtr": "none",
+        "rts": "none",
+        "cts": "none",
+        "dsr": "none",
+        "newline": "\\n",
+        "bin": "false",
+        "out": "char",
+        "addchar": "",
+        "responsetimeout": 10000
+    },
+    {
+        "id": "bb8f095b1e31589b",
+        "type": "ui-page",
+        "name": "RealTime",
+        "ui": "55b183b9cb3663da",
+        "path": "/realtime",
+        "icon": "home",
+        "layout": "flex",
+        "theme": "7c7fdc802ee774d0",
+        "breakpoints": [
+            {
+                "name": "Default",
+                "px": "0",
+                "cols": "3"
+            },
+            {
+                "name": "Tablet",
+                "px": "576",
+                "cols": "6"
+            },
+            {
+                "name": "Small Desktop",
+                "px": "768",
+                "cols": "9"
+            },
+            {
+                "name": "Desktop",
+                "px": "1024",
+                "cols": "12"
+            }
+        ],
+        "order": 1,
+        "className": "",
+        "visible": "true",
+        "disabled": "false"
+    },
+    {
+        "id": "b37946807a5766e3",
+        "type": "ui-group",
+        "name": "SENSORS",
+        "page": "bb8f095b1e31589b",
+        "width": "24",
+        "height": 1,
+        "order": 2,
+        "showTitle": false,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "fc1690a24a00f967",
+        "type": "ui-group",
+        "name": "CommandBar",
+        "page": "bb8f095b1e31589b",
+        "width": "24",
+        "height": 1,
+        "order": 1,
+        "showTitle": false,
+        "className": "",
+        "visible": "true",
+        "disabled": "false",
+        "groupType": "default"
+    },
+    {
+        "id": "3140f09676f954ac",
+        "type": "function",
+        "z": "244fa03e349f634a",
+        "name": "Bosch",
+        "func": "var data1 = [];\nvar data2 = [];\nvar data3 = [];\nvar data4 = [];\n\n{\n    var element = msg.payload;\n    var timestamp = new Date();\n\n    data1.push({\"x\":timestamp,\"y\":element.data.T});\n    data2.push({\"x\":timestamp,\"y\":element.data.H}); \n    data3.push({\"x\":timestamp,\"y\":element.data.P/100}); // Pa to mbar\n    data4.push({\"x\":timestamp,\"y\":element.data.VOC});\n}\n\n\nvar msg1 = {};\nvar msg2 = {};\nvar msg3 = {};\nvar msg4 = {};\n\nmsg1.payload = data1;\nmsg2.payload = data2;\nmsg3.payload = data3;\nmsg4.payload = data4;\n\nreturn [msg1,msg2,msg3,msg4];",
+        "outputs": 4,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 870,
+        "y": 320,
+        "wires": [
+            [
+                "24ab36e642d94ab0",
+                "9a6757a6baeb4cfb"
+            ],
+            [
+                "e72c95f2d053f563"
+            ],
+            [
+                "ef2ca3c253670865"
+            ],
+            [
+                "74bf08a7e01e6bff"
+            ]
+        ]
+    },
+    {
+        "id": "16b1f7c1796a90e4",
+        "type": "ui-button",
+        "z": "244fa03e349f634a",
+        "group": "fc1690a24a00f967",
+        "name": "",
+        "label": "CLEAN",
+        "order": 1,
+        "width": 2,
+        "height": 1,
+        "emulateClick": false,
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "",
+        "iconPosition": "left",
+        "payload": "[]",
+        "payloadType": "json",
+        "topic": "topic",
+        "topicType": "msg",
+        "buttonColor": "",
+        "textColor": "",
+        "iconColor": "",
+        "enableClick": true,
+        "enablePointerdown": false,
+        "pointerdownPayload": "",
+        "pointerdownPayloadType": "str",
+        "enablePointerup": false,
+        "pointerupPayload": "",
+        "pointerupPayloadType": "str",
+        "x": 860,
+        "y": 240,
+        "wires": [
+            [
+                "24ab36e642d94ab0",
+                "e72c95f2d053f563",
+                "ef2ca3c253670865",
+                "74bf08a7e01e6bff",
+                "e59fa643b86a8436"
+            ]
+        ]
+    },
+    {
+        "id": "4809504f27b52674",
+        "type": "function",
+        "z": "244fa03e349f634a",
+        "name": "Particulate",
+        "func": "var data1 = [];\n\n{\n    var element = msg.payload;\n    var timestamp = new Date();\n\n    data1.push({\"series\":\"PM 10\",\"x\":timestamp,\"y\":element.data.PM10});\n    data1.push({\"series\":\"PM 2.5\",\"x\":timestamp,\"y\":element.data.PM25});\n    data1.push({\"series\":\"PM 1\",\"x\":timestamp,\"y\":element.data.PM1});\n}\n\nvar msg1 = {};\n\nmsg1.payload = data1;\n\nreturn msg1;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 885,
+        "y": 659,
+        "wires": [
+            [
+                "e59fa643b86a8436",
+                "22f1208ebf9d8dae"
+            ]
+        ]
+    },
+    {
+        "id": "24ab36e642d94ab0",
+        "type": "ui-chart",
+        "z": "244fa03e349f634a",
+        "group": "b37946807a5766e3",
+        "name": "Temperature",
+        "label": "Temperature",
+        "order": 1,
+        "chartType": "line",
+        "category": "",
+        "categoryType": "none",
+        "xAxisLabel": "",
+        "xAxisProperty": "x",
+        "xAxisPropertyType": "property",
+        "xAxisType": "time",
+        "xAxisFormat": "dd HH:mm",
+        "xAxisFormatType": "custom",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "*C",
+        "yAxisProperty": "y",
+        "yAxisPropertyType": "property",
+        "ymin": "",
+        "ymax": "",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": "100",
+        "removeOlderUnit": "86400",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "24",
+        "height": "5",
+        "className": "",
+        "interpolation": "cubic",
+        "x": 1450,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "22f1208ebf9d8dae",
+        "type": "debug",
+        "z": "244fa03e349f634a",
+        "name": "debug 8",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1400,
+        "y": 740,
+        "wires": []
+    },
+    {
+        "id": "e72c95f2d053f563",
+        "type": "ui-chart",
+        "z": "244fa03e349f634a",
+        "group": "b37946807a5766e3",
+        "name": "Humidity",
+        "label": "Humidity",
+        "order": 2,
+        "chartType": "line",
+        "category": "",
+        "categoryType": "none",
+        "xAxisLabel": "",
+        "xAxisProperty": "x",
+        "xAxisPropertyType": "property",
+        "xAxisType": "time",
+        "xAxisFormat": "dd HH:mm",
+        "xAxisFormatType": "custom",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "%rH",
+        "yAxisProperty": "y",
+        "yAxisPropertyType": "property",
+        "ymin": "",
+        "ymax": "",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": "100",
+        "removeOlderUnit": "86400",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "24",
+        "height": "5",
+        "className": "",
+        "interpolation": "cubic",
+        "x": 1440,
+        "y": 280,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ef2ca3c253670865",
+        "type": "ui-chart",
+        "z": "244fa03e349f634a",
+        "group": "b37946807a5766e3",
+        "name": "Pressure",
+        "label": "Pressure",
+        "order": 3,
+        "chartType": "line",
+        "category": "",
+        "categoryType": "none",
+        "xAxisLabel": "",
+        "xAxisProperty": "x",
+        "xAxisPropertyType": "property",
+        "xAxisType": "time",
+        "xAxisFormat": "dd HH:mm",
+        "xAxisFormatType": "custom",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "mbar",
+        "yAxisProperty": "y",
+        "yAxisPropertyType": "property",
+        "ymin": "",
+        "ymax": "",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": "100",
+        "removeOlderUnit": "86400",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "24",
+        "height": "5",
+        "className": "",
+        "interpolation": "cubic",
+        "x": 1440,
+        "y": 340,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "74bf08a7e01e6bff",
+        "type": "ui-chart",
+        "z": "244fa03e349f634a",
+        "group": "b37946807a5766e3",
+        "name": "VOC",
+        "label": "VOC",
+        "order": 4,
+        "chartType": "line",
+        "category": "",
+        "categoryType": "none",
+        "xAxisLabel": "",
+        "xAxisProperty": "x",
+        "xAxisPropertyType": "property",
+        "xAxisType": "time",
+        "xAxisFormat": "dd HH:mm",
+        "xAxisFormatType": "custom",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "ppm",
+        "yAxisProperty": "y",
+        "yAxisPropertyType": "property",
+        "ymin": "",
+        "ymax": "",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": "0",
+        "showLegend": false,
+        "removeOlder": "100",
+        "removeOlderUnit": "86400",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "24",
+        "height": "5",
+        "className": "",
+        "interpolation": "cubic",
+        "x": 1430,
+        "y": 400,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e59fa643b86a8436",
+        "type": "ui-chart",
+        "z": "244fa03e349f634a",
+        "group": "b37946807a5766e3",
+        "name": "Particulate",
+        "label": "Particulate",
+        "order": 5,
+        "chartType": "line",
+        "category": "series",
+        "categoryType": "property",
+        "xAxisLabel": "",
+        "xAxisProperty": "x",
+        "xAxisPropertyType": "property",
+        "xAxisType": "time",
+        "xAxisFormat": "dd HH:mm",
+        "xAxisFormatType": "custom",
+        "xmin": "",
+        "xmax": "",
+        "yAxisLabel": "ug/m^3",
+        "yAxisProperty": "y",
+        "yAxisPropertyType": "property",
+        "ymin": "",
+        "ymax": "",
+        "bins": 10,
+        "action": "append",
+        "stackSeries": false,
+        "pointShape": "false",
+        "pointRadius": "0",
+        "showLegend": true,
+        "removeOlder": "100",
+        "removeOlderUnit": "86400",
+        "removeOlderPoints": "",
+        "colors": [
+            "#0095ff",
+            "#ff0000",
+            "#ff7f0e",
+            "#2ca02c",
+            "#a347e1",
+            "#d62728",
+            "#ff9896",
+            "#9467bd",
+            "#c5b0d5"
+        ],
+        "textColor": [
+            "#666666"
+        ],
+        "textColorDefault": true,
+        "gridColor": [
+            "#e5e5e5"
+        ],
+        "gridColorDefault": true,
+        "width": "24",
+        "height": "5",
+        "className": "",
+        "interpolation": "cubic",
+        "x": 1410,
+        "y": 660,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9a6757a6baeb4cfb",
+        "type": "debug",
+        "z": "244fa03e349f634a",
+        "name": "debug 9",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "true",
+        "targetType": "full",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1440,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "a7a5c54252ba83cf",
+        "type": "serial in",
+        "z": "244fa03e349f634a",
+        "name": "",
+        "serial": "06c2e49ebfc5e879",
+        "x": 190,
+        "y": 200,
+        "wires": [
+            [
+                "537ff2eae3c68e56",
+                "16a1bf48ea5fb6bf"
+            ]
+        ]
+    },
+    {
+        "id": "76eb91bd3d5dd23a",
+        "type": "debug",
+        "z": "244fa03e349f634a",
+        "name": "debug 2",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 120,
+        "wires": []
+    },
+    {
+        "id": "537ff2eae3c68e56",
+        "type": "json",
+        "z": "244fa03e349f634a",
+        "name": "",
+        "property": "payload",
+        "action": "",
+        "pretty": false,
+        "x": 410,
+        "y": 200,
+        "wires": [
+            [
+                "2e74b9b6cd904824"
+            ]
+        ]
+    },
+    {
+        "id": "2e74b9b6cd904824",
+        "type": "switch",
+        "z": "244fa03e349f634a",
+        "name": "",
+        "property": "payload.topic",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "bme690",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "bmv080",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 2,
+        "x": 590,
+        "y": 200,
+        "wires": [
+            [
+                "76eb91bd3d5dd23a",
+                "3140f09676f954ac"
+            ],
+            [
+                "48205f46e6238685",
+                "4809504f27b52674"
+            ]
+        ]
+    },
+    {
+        "id": "48205f46e6238685",
+        "type": "debug",
+        "z": "244fa03e349f634a",
+        "name": "debug 3",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 840,
+        "y": 180,
+        "wires": []
+    },
+    {
+        "id": "16a1bf48ea5fb6bf",
+        "type": "debug",
+        "z": "244fa03e349f634a",
+        "name": "debug 4",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 80,
+        "wires": []
+    }
+]
