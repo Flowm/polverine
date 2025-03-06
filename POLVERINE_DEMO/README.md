@@ -32,28 +32,16 @@ The SDKs source code and compiled libraries cannot be stored in this repository,
 
 
 #### Bosch BMV080 SDK
+Unzip the downloaded BMV080 SDK file and move the SDK's folder into the ../deps/bosch-sensortec/ folder, and rename it as: "BMV080-SDK", 
+and the folder "BMV080-SDK" should have the following subfolders and/or files:
+"CHANGELOG.md  LICENSE.md  README.md  api  api_examples"
 
-Copy the following files from the BMV080 SDK tree to the POLVERINE_FULL_MQTT_DEMO source tree:
-```
-- copy file /api/inc/bmv080.h into /include folder
-- copy file /api/inc/bmv080_defs.h into /include folder
-- copy file /api_examples/_common/inc/bmv080_example.h into /include folder
-- copy /api/lib/xtensa_esp32s3/xtensa_esp32s3_elf_gcc/release/lib_postProcessor.a into /lib folder
-- copy /api/lib/xtensa_esp32s3/xtensa_esp32s3_elf_gcc/release/lib_bmv080.a into /lib folder
-```
-#### Bosch BME690 BSEC SDK
 
-Copy the following files from the BME690 SDK tree to the POLVERINE_FULL_MQTT_DEMO source tree:
-```
-- copy folder /examples/BSEC_Integration_Examples/src/bme69x into /lib
-- copy file /algo/config/bme690/bme690_iaq_33v_3s_4d/bsec_iaq.c into /lib/config folder
-- copy file /algo/config/bme690/bme690_iaq_33v_3s_4d/bsec_iaq.h into /lib/config folder
-- copy file /algo/bsec_IAQ/bin/esp/esp32_s3/libalgobsec.a into /lib folder
-- copy file /algo/bsec_iaq/inc/bsec_datatypes.h into /include folder
-- copy file /algo/bsec_iaq/inc/bsec_interface.h into /include folder
-- copy file /examples/BSEC_Integration_Examples/examples/bsec_iot_example/bsec_integration.c into /src and patch with patch1.patch
-- copy file /examples/BSEC_Integration_Examples/examples/bsec_iot_example/bsec_integration.h into /src and patch with patch2.patch
-```
+#### Bosch BME690 BSEC Library
+Unzip the downloaded BSEC Library file and move the library's folder into the ../deps/bosch-sensortec/ folder, and rename it as: "bsec_library_v3.x", 
+and the folder "bsec_library_v3.x" should have at least the following subfolders and/or files:
+"algo   examples    ..."
+
 
 ### Firmware Upload
 The POLVERINE_DEMO puts the ESP32-S3 MCU in low power mode that disables USB. To upload the firmware using USB port you must put Polverine in boot mode: 
