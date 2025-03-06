@@ -33,14 +33,27 @@ The SDKs source code and compiled libraries cannot be stored in this repository,
 
 
 #### Bosch BMV080 SDK
-Unzip the downloaded BMV080 SDK file and move the SDK's folder into the ../deps/bosch-sensortec/ folder, and rename it as: "BMV080-SDK", 
-and the folder "BMV080-SDK" should have the following subfolders and/or files:
-"CHANGELOG.md  LICENSE.md  README.md  api  api_examples"
+1) Unzip the downloaded BMV080 SDK file 
+2) move the SDK's folder into the ../deps/bosch-sensortec/ folder
+3) and rename it as: "BMV080-SDK"
+
+The folder "BMV080-SDK" should have the following subfolders and/or files:
+
+- CHANGELOG.md  
+- LICENSE.md  
+- README.md  
+- api  
+- api_examples"
 
 #### Bosch BME690 BSEC Library
-Unzip the downloaded BSEC Library file and move the library's folder into the ../deps/bosch-sensortec/ folder, and rename it as: "bsec_library_v3.x", 
-and the folder "bsec_library_v3.x" should have at least the following subfolders and/or files:
-"algo   examples    ..."
+1) Unzip the downloaded BSEC Library file 
+2) move the library's folder into the ../deps/bosch-sensortec/ folder
+3) and rename it as: "bsec_library_v3.x"
+ 
+The folder "bsec_library_v3.x" should have at least the following subfolders and/or files:
+
+- algo
+- examples
 
 ### Firmware Customization
 
