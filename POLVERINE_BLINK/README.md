@@ -8,6 +8,6 @@ This is the simplest application of all, but it still can be useful to:
 - verify that Polverine is working
 
 
-THis simple application can also be the starting point to learn how to program and debug Polverine and ESP32 with PlatformIO in Visual Studio Code.
+This simple application can also be the starting point to learn how to program and debug Polverine and ESP32 with PlatformIO in Visual Studio Code.
 
 

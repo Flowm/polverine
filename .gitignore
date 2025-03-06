@@ -21,3 +21,7 @@
 *.out
 *.app
 *.elf
+
+# BOSCH SDK
+deps/bosch-sensortec/BMV080-SDK/
+deps/bosch-sensortec/bsec_library_v3.x/
