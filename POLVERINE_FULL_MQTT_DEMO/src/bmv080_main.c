@@ -7,6 +7,8 @@
 #include "mqtt_client.h"
 #include "driver/temperature_sensor.h"
 
+#include "polverine_cfg.h"
+
 spi_device_handle_t hspi;
 //extern bool isConnected;
 //extern esp_mqtt_client_handle_t client;
@@ -25,10 +27,10 @@ static char buffer[256] = {0};
 float temperature;
   temperature_sensor_get_celsius(temp_sensor, &temperature);
 
-  snprintf(buffer,256,"{\"ID\":\"%s\",\"R\":%.1f,\"PM10\":%.0f,\"PM25\":%.0f,\"PM1\":%.0f,\"obst\":\"%s\",\"omr\":\"%s\",\"T\":%.1f}\n", shortId,
-        bmv080_output.runtime_in_sec, bmv080_output.pm10_mass_concentration, bmv080_output.pm2_5_mass_concentration, bmv080_output.pm1_mass_concentration, 
+  snprintf(buffer,256,"{\"ID\":\"%s\",\"R\":%.1f,\"PM10\":%.0f,\"PM25\":%.0f,\"PM1\":%.0f,\"obst\":\"%s\",\"omr\":\"%s\",\"T\":%.1f, \"dcp\":%d}\n", shortId,
+        bmv080_output.runtime_in_sec, bmv080_output.pm10_mass_concentration, bmv080_output.pm2_5_mass_concentration, bmv080_output.pm1_mass_concentration,
         (bmv080_output.is_obstructed ? "yes" : "no"), (bmv080_output.is_outside_measurement_range ? "yes" : "no"),
-        temperature);     
+        temperature, PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S);
 
 //  printf(buffer);
 
@@ -118,7 +120,7 @@ void bmv080_task(void *pvParameter)
     printf("Default duty_cycling_period: %d s\r\n", duty_cycling_period);
 
     /* Set custom parameter "duty_cycling_period" */
-    duty_cycling_period = 60;
+    duty_cycling_period = PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S;
     bmv080_current_status = bmv080_set_parameter(handle, "duty_cycling_period", (void*)&duty_cycling_period);
 
     printf("Customized duty_cycling_period: %d s\r\n", duty_cycling_period);
@@ -158,7 +160,7 @@ void bmv080_task(void *pvParameter)
 }
 
 
-void bmv080_app_start() 
+void bmv080_app_start()
 {
   xTaskCreate(&bmv080_task, "bmv080_task", 60 * 1024, NULL, configMAX_PRIORITIES - 1, NULL);
 }

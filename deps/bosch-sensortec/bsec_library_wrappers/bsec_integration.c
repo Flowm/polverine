@@ -71,6 +71,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "polverine_cfg.h"
+
 
 static struct bme69x_conf bme69x_config[NUM_OF_SENS];
 static struct bme69x_dev bme69x[NUM_OF_SENS];
@@ -92,10 +94,10 @@ static bsec_library_return_t update_subscription(float sample_rate, uint8_t sens
     bsec_library_return_t status;
     bsec_sensor_configuration_t requested_virtual_sensors[NUM_USED_OUTPUTS];
     uint8_t n_requested_virtual_sensors = NUM_USED_OUTPUTS;
-    
+
     bsec_sensor_configuration_t required_sensor_settings[BSEC_MAX_PHYSICAL_SENSOR];
     uint8_t n_required_sensor_settings = BSEC_MAX_PHYSICAL_SENSOR;
-    
+
 	requested_virtual_sensors[0].sensor_id = BSEC_OUTPUT_RAW_PRESSURE;
     requested_virtual_sensors[0].sample_rate = sample_rate;
     requested_virtual_sensors[1].sensor_id = BSEC_OUTPUT_RAW_TEMPERATURE;
@@ -542,10 +544,10 @@ void bsec_iot_loop(state_save_fct state_save, get_timestamp_ms_fct get_timestamp
 		opMode[i] = sensor_settings[i].op_mode;
 		sensor_settings[i].next_call = 0;
 	}
-	
+
     while (1)
     {
-        vTaskDelay(50); // Minimum 1ms yield for ESP32
+        vTaskDelay(PLVN_CFG_BSEC_LOOP_DELAY_TIME_MS); // Minimum 1ms yield for ESP32
         for (uint8_t sens_no = 0; sens_no < n_sensors; sens_no++)
         {
             uint8_t nFieldsLeft = 0;
