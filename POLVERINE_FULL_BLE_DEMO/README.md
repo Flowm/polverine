@@ -17,23 +17,23 @@ The message contains the data in JSON format:
 {
 "topic":"bmv080",
 "data":{
-	  "ID": "54ADD8",
-	  "R": 9131.2,
-	  "PM10": 32,
-	  "PM25": 24,
-	  "PM1": 11,
- 	 "obst": "no",
- 	 "omr": "no",
- 	 "T": 11.1
+		"ID": "54ADD8",
+		"R": 9131.2,
+		"PM10": 32,
+		"PM25": 24,
+		"PM1": 11,
+		"obst": "no",
+		"omr": "no",
+		"T": 11.1
 	}
 }
 ```
 
-2) bmv690 message
+2) bme690 message
 
 ```json
 {
-"topic":"bmv080",
+"topic":"bme690",
 "data":{	
 	  "ID": "54ADD8",
 	  "R": 8556.6,
