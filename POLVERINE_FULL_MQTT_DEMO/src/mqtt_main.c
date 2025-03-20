@@ -9,7 +9,7 @@
 const char *TAG = "mqtt_polverine";
 
 //const char *TEMPLATE_POLVERINE_MQTT = "{\"uri\":\"mqtt://crystalmq.bevywise.com\",\"user\":\"3DHnhvm19Xsyzrbq87\",\"pwd\":\"xLwoAh015bMIlKcbis\",\"clientid\":\"%s\"}";
-const char *TEMPLATE_POLVERINE_MQTT = "{\"uri\":\"mqtt://192.168.68.73\",\"user\":\"polv_apub\",\"pwd\":\"IAaAPLVNPD\",\"clientid\":\"%s\"}";
+const char *TEMPLATE_POLVERINE_MQTT = "{\"uri\":\"mqtt://192.168.137.1\",\"user\":\"polv_apub\",\"pwd\":\"IAaAPLVNPD\",\"clientid\":\"%s\"}";
 //const char *TEMPLATE_POLVERINE_MQTT = "{\"uri\":\"mqtt://crystalmq.bevywise.com\",\"user\":\"3DHnhvm19XXWhPm4QE\",\"pwd\":\"ce9LEUShQQx2XGMyFY\",\"clientid\":\"msqt-zg-mbp\"}";
 const char *TEMPLATE_POLVERINE_TOPIC = "{\"bmv080\":\"polverine/%s/bmv080\",\"bme690\":\"polverine/%s/bme690\",\"cmd\":\"polverine/%s/cmd\"}";
 
