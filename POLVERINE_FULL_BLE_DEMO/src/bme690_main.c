@@ -115,11 +115,11 @@ void bme690_task(void *)
 	
 	if (ret.bme69x_status != BME69X_OK) {
 		printf("ERROR while initializing BME68x: %d\r\n", ret.bme69x_status);
-        return;
+        vTaskDelete(NULL);
 	}
 	if (ret.bsec_status < BSEC_OK) {
 		printf("\nERROR while initializing BSEC library: %d\n", ret.bsec_status);
-        return;
+        vTaskDelete(NULL);
 	}
 	else if (ret.bsec_status > BSEC_OK) {
 		printf("\nWARNING while initializing BSEC library: %d\n", ret.bsec_status);
