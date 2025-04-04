@@ -6,6 +6,7 @@
 #include "bmv080_io.h"
 #include "mqtt_client.h"
 #include "driver/temperature_sensor.h"
+#include "leds.h"
 
 spi_device_handle_t hspi;
 //extern bool isConnected;
@@ -18,8 +19,6 @@ volatile bool flBMV080Published = false;
 void bmv080_data_ready(bmv080_output_t bmv080_output, void* callback_parameters)
 {
 static char buffer[256] = {0};
-//  gpio_set_level(B_LED_PIN, 1);
-//  gpio_hold_en(B_LED_PIN);
 
 float temperature;
   temperature_sensor_get_celsius(temp_sensor, &temperature); 
@@ -32,8 +31,6 @@ float temperature;
   printf(buffer);
 
   flBMV080Published = true;
-//  gpio_set_level(B_LED_PIN, 0);
-//  gpio_hold_en(B_LED_PIN);
 }
 
 uint32_t get_tick_ms(void)
@@ -48,7 +45,8 @@ void bmv080_task(void *pvParameter)
   if(comm_status != ESP_OK)
   {
     printf("Initializing the SPI communication interface failed with status %d\r\n", (int)comm_status);
-    while (1);
+    stsBMV080 = STATUS_ERROR;
+    vTaskDelete(NULL);
   }
 
 	uint16_t major = 0;
@@ -65,46 +63,27 @@ void bmv080_task(void *pvParameter)
   if (bmv080_current_status != E_BMV080_OK)
   {
     printf("Getting BMV080 sensor driver version failed with BMV080 status %d\r\n", bmv080_current_status);
-    gpio_set_level(R_LED_PIN, 1);
-    gpio_hold_en(R_LED_PIN);
-    while (1);
+    stsBMV080 = STATUS_ERROR;
+    vTaskDelete(NULL);
   }
   printf("BMV080 sensor driver version: %d.%d.%d.%s.%ld\r\n", major, minor, patch, git_hash, commits_ahead);
-  gpio_set_level(G_LED_PIN, 1);
-  gpio_hold_en(G_LED_PIN);
-  bmv080_delay(1);
-  gpio_set_level(G_LED_PIN, 0);
-  gpio_hold_en(G_LED_PIN);
-
   bmv080_handle_t handle = {0};
 
   bmv080_current_status = bmv080_open(&handle, hspi, bmv080_spi_read_16bit,  bmv080_spi_write_16bit,  bmv080_delay);
   if(bmv080_current_status != E_BMV080_OK)
   {
     printf("Initializing BMV080 failed with status %d\r\n", (int)bmv080_current_status);
-    gpio_set_level(R_LED_PIN, 1);
-    gpio_hold_en(R_LED_PIN);
-    while (1);
+    stsBMV080 = STATUS_ERROR;
+    vTaskDelete(NULL);
   }
-  gpio_set_level(G_LED_PIN, 1);
-  gpio_hold_en(G_LED_PIN);
-  bmv080_delay(1);
-  gpio_set_level(G_LED_PIN, 0);
-  gpio_hold_en(G_LED_PIN);
 
   bmv080_current_status = bmv080_reset(handle);
   if (bmv080_current_status != E_BMV080_OK)
   {
     printf("Resetting BMV080 sensor unit failed with BMV080 status %d\r\n", (int)bmv080_current_status);
-    gpio_set_level(R_LED_PIN, 1);
-    gpio_hold_en(R_LED_PIN);
-    while (1);
+    stsBMV080 = STATUS_ERROR;
+    vTaskDelete(NULL);
   }
-  gpio_set_level(G_LED_PIN, 1);
-  gpio_hold_en(G_LED_PIN);
-  bmv080_delay(1);
-  gpio_set_level(G_LED_PIN, 0);
-  gpio_hold_en(G_LED_PIN);
 
    /*********************************************************************************************************************
     * Running a particle measurement in duty cycling mode
@@ -126,22 +105,16 @@ void bmv080_task(void *pvParameter)
   if(bmv080_current_status != E_BMV080_OK)
   {
     printf("Starting BMV080 failed with status %d\r\n", (int)bmv080_current_status);
-    gpio_set_level(R_LED_PIN, 1);
-    gpio_hold_en(R_LED_PIN);
-    while (1);
+    stsBMV080 = STATUS_ERROR;
+    vTaskDelete(NULL);
   }
-  gpio_set_level(G_LED_PIN, 1);
-  gpio_hold_en(G_LED_PIN);
-  bmv080_delay(1);
-  gpio_set_level(G_LED_PIN, 0);
-  gpio_hold_en(G_LED_PIN);
 
 
  temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 80);
  temperature_sensor_install(&temp_sensor_config, &temp_sensor);
  temperature_sensor_enable(temp_sensor);
 
-
+ stsBMV080 = STATUS_OK;
   for(;;)
   {
     bmv080_delay(1000);
@@ -149,8 +122,6 @@ void bmv080_task(void *pvParameter)
     if(bmv080_current_status != E_BMV080_OK)
     {
       printf("Reading BMV080 failed with status %d\r\n", (int)bmv080_current_status);
-      gpio_set_level(R_LED_PIN, 1);
-      gpio_set_level(R_LED_PIN, 0);
     }
   }
 }

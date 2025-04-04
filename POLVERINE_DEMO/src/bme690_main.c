@@ -18,6 +18,7 @@
 #include "driver/gpio.h"
 #include "peripherals.h"
 #include "sensorbuffer.h"
+#include "leds.h"
 
 #define SID_BME69X                      UINT16_C(0x093)
 #define SID_BME69X_X8                   UINT16_C(0x057)
@@ -113,11 +114,13 @@ void bme690_task(void *)
 	
 	if (ret.bme69x_status != BME69X_OK) {
 		printf("ERROR while initializing BME68x: %d\r\n", ret.bme69x_status);
-        return;
+        stsBME690 = STATUS_ERROR;
+        vTaskDelete(NULL);
 	}
 	if (ret.bsec_status < BSEC_OK) {
 		printf("\nERROR while initializing BSEC library: %d\n", ret.bsec_status);
-        return;
+        stsBME690 = STATUS_ERROR;
+        vTaskDelete(NULL);
 	}
 	else if (ret.bsec_status > BSEC_OK) {
 		printf("\nWARNING while initializing BSEC library: %d\n", ret.bsec_status);
@@ -126,6 +129,8 @@ void bme690_task(void *)
 	ret.bsec_status = bsec_get_version(bsecInstance, &version);
 
     printf("BSEC Version : %u.%u.%u.%u\r\n",version.major,version.minor,version.major_bugfix,version.minor_bugfix);
+    stsBME690 = STATUS_OK;
+
     bsec_iot_loop(state_save, get_timestamp_ms, output_ready);
 	
     i2c_deinit();
@@ -216,9 +221,6 @@ extern volatile bool flBMV080Published;
 static void output_ready(outputs_t *output)
 {
 static char* buffer[600];
-  //gpio_set_level(G_LED_PIN, 1);
-  //gpio_hold_en(G_LED_PIN);
-  //gpio_deep_sleep_hold_en();
   
   sb_add(&aveT,output->compensated_temperature);
   sb_add(&aveP,output->raw_pressure);
@@ -229,9 +231,6 @@ static char* buffer[600];
   sb_add(&aveVOC,output->breath_voc_equivalent);
 
 { // called 1 time every 3 ? (4.25) seconds, demultiplied to 1 data out every minute
-//    static int demult = 20;
-
-//    if(demult++ >= 20)
     if(flBMV080Published)
     {
         snprintf((char * __restrict__)buffer,600,"{\"topic\":\"bme690\",\"data\":{\"ID\":\"%s\",\"R\":%.2f,\"T\":%.2f,\"P\":%.2f,\"H\":%.2f,\"IAQ\":%.2f,\"ACC\":%.2f,\"CO2\":%.2f,\"VOC\":%.2f}}\n", 
@@ -243,9 +242,6 @@ static char* buffer[600];
         flBMV080Published = false;
     }
 }    
-  //gpio_set_level(G_LED_PIN, 0);
-  //gpio_hold_en(G_LED_PIN);
-  //gpio_deep_sleep_hold_en();
 }
 
 void bme690_app_start() 
