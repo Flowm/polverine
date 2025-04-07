@@ -55,14 +55,14 @@ void bmv080_task(void *pvParameter)
 	char  	 git_hash[12] = {0};
 	int32_t commits_ahead = 0;
 
-  bmv080_delay(5000);
-  printf("\r\nPOLVERINE demo starting on %s\r\n",shortId);
+  bmv080_delay(1000);
+  printf("\r\BMV080 demo starting on %s\r\n",shortId);
 
   bmv080_status_code_t bmv080_current_status = E_BMV080_OK;
   bmv080_current_status = bmv080_get_driver_version(&major, &minor, &patch, git_hash, &commits_ahead);
   if (bmv080_current_status != E_BMV080_OK)
   {
-    printf("Getting BMV080 sensor driver version failed with BMV080 status %d\r\n", bmv080_current_status);
+    printf("POLVERINE BMV080 ERROR: Getting BMV080 sensor driver version failed with BMV080 status %d\r\n", bmv080_current_status);
     stsBMV080 = STATUS_ERROR;
     vTaskDelete(NULL);
   }
@@ -72,7 +72,7 @@ void bmv080_task(void *pvParameter)
   bmv080_current_status = bmv080_open(&handle, hspi, bmv080_spi_read_16bit,  bmv080_spi_write_16bit,  bmv080_delay);
   if(bmv080_current_status != E_BMV080_OK)
   {
-    printf("Initializing BMV080 failed with status %d\r\n", (int)bmv080_current_status);
+    printf("POLVERINE BMV080 ERROR: Initializing BMV080 failed with status %d\r\n", (int)bmv080_current_status);
     stsBMV080 = STATUS_ERROR;
     vTaskDelete(NULL);
   }
@@ -80,7 +80,7 @@ void bmv080_task(void *pvParameter)
   bmv080_current_status = bmv080_reset(handle);
   if (bmv080_current_status != E_BMV080_OK)
   {
-    printf("Resetting BMV080 sensor unit failed with BMV080 status %d\r\n", (int)bmv080_current_status);
+    printf("POLVERINE BMV080 ERROR: Resetting BMV080 sensor unit failed with BMV080 status %d\r\n", (int)bmv080_current_status);
     stsBMV080 = STATUS_ERROR;
     vTaskDelete(NULL);
   }
@@ -92,29 +92,31 @@ void bmv080_task(void *pvParameter)
     uint16_t duty_cycling_period = 0;
     bmv080_current_status = bmv080_get_parameter(handle, "duty_cycling_period", (void*)&duty_cycling_period);
 
-    printf("Default duty_cycling_period: %d s\r\n", duty_cycling_period);
+    printf("BMV080 Default duty_cycling_period: %d s\r\n", duty_cycling_period);
 
     /* Set custom parameter "duty_cycling_period" */
     duty_cycling_period = 60;
     bmv080_current_status = bmv080_set_parameter(handle, "duty_cycling_period", (void*)&duty_cycling_period);
 
-    printf("Customized duty_cycling_period: %d s\r\n", duty_cycling_period);
+    printf("BMV080 Customized duty_cycling_period: %d s\r\n", duty_cycling_period);
 
 
   bmv080_current_status = bmv080_start_duty_cycling_measurement(handle,get_tick_ms,E_BMV080_DUTY_CYCLING_MODE_0);
   if(bmv080_current_status != E_BMV080_OK)
   {
-    printf("Starting BMV080 failed with status %d\r\n", (int)bmv080_current_status);
+    printf("POLVERINE BMV080 ERROR: Starting BMV080 failed with status %d\r\n", (int)bmv080_current_status);
     stsBMV080 = STATUS_ERROR;
     vTaskDelete(NULL);
   }
 
 
- temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 80);
- temperature_sensor_install(&temp_sensor_config, &temp_sensor);
- temperature_sensor_enable(temp_sensor);
+  temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 80);
+  temperature_sensor_install(&temp_sensor_config, &temp_sensor);
+  temperature_sensor_enable(temp_sensor);
 
- stsBMV080 = STATUS_OK;
+  stsBMV080 = STATUS_OK;
+  printf("POLVERINE BMV080 OK\r\n");
+
   for(;;)
   {
     bmv080_delay(1000);

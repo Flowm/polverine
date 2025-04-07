@@ -113,21 +113,22 @@ void bme690_task(void *)
     ret = bsec_iot_init(SAMPLE_RATE, bme69x_interface_init, state_load, config_load);
 	
 	if (ret.bme69x_status != BME69X_OK) {
-		printf("ERROR while initializing BME68x: %d\r\n", ret.bme69x_status);
+		printf("POLVERINE BME690 ERROR while initializing BME68x: %d\r\n", ret.bme69x_status);
         stsBME690 = STATUS_ERROR;
         vTaskDelete(NULL);
 	}
 	if (ret.bsec_status < BSEC_OK) {
-		printf("\nERROR while initializing BSEC library: %d\n", ret.bsec_status);
+		printf("POLVERINE BME690 ERROR while initializing BSEC library: %d\r\n", ret.bsec_status);
         stsBME690 = STATUS_ERROR;
         vTaskDelete(NULL);
 	}
 	else if (ret.bsec_status > BSEC_OK) {
-		printf("\nWARNING while initializing BSEC library: %d\n", ret.bsec_status);
+		printf("POLVERINE BME690 WARNING while initializing BSEC library: %d\r\n", ret.bsec_status);
 	}
 
 	ret.bsec_status = bsec_get_version(bsecInstance, &version);
 
+    printf("POLVERINE BME690 OK\r\n");
     printf("BSEC Version : %u.%u.%u.%u\r\n",version.major,version.minor,version.major_bugfix,version.minor_bugfix);
     stsBME690 = STATUS_OK;
 
