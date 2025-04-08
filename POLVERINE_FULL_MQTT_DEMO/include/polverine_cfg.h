@@ -6,5 +6,6 @@
 
 #define PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S 60
 
+#define PLVN_CFG_BMV080_CONNECTIVITY_WIFI   true
 
 #endif

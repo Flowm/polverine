@@ -6,5 +6,6 @@
 
 #define PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S 30
 
+#define PLVN_CFG_BMV080_CONNECTIVITY_USB    true
 
 #endif
