@@ -235,11 +235,6 @@ static char* buffer[600];
   sb_add(&aveCO2,output->co2_equivalent);
   sb_add(&aveVOC,output->breath_voc_equivalent);
 
-{ // called 1 time every 3 ? (4.25) seconds, demultiplied to 1 data out every minute
-//    static int demult = 20;
-
-//    if(demult++ >= 20)
-
     if (!PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080) {
         snprintf((char * __restrict__)buffer,600,"{\"topic\":\"bme690\",\"data\":{\"ID\":\"%s\",\"R\":%.2f,\"T\":%.2f,\"P\":%.2f,\"H\":%.2f,\"IAQ\":%.2f,\"ACC\":%.2f,\"CO2\":%.2f,\"VOC\":%.2f,"
                 "\"mtof\":%.2f, \"bougb8\":%d, \"ltdt\":%d}}\n",
@@ -261,26 +256,7 @@ static char* buffer[600];
 
         printf((const char *)buffer);
         flBMV080Published = false;
-        //demult = 0;
     }
-}
-  //gpio_set_level(G_LED_PIN, 0);
-  //gpio_hold_en(G_LED_PIN);
-  //gpio_deep_sleep_hold_en();
-
-/*
-#if (OUTPUT_MODE == IAQ)
-    printf("%ld,%f,%u,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n", (uint32_t)(output->timestamp/1000000),
-                output->iaq, output->iaq_accuracy, output->static_iaq, output->raw_temp, output->raw_humidity, output->compensated_temperature,
-                output->compensated_humidity, output->raw_pressure, output->raw_gas, output->gas_percentage, output->co2_equivalent,
-                output->breath_voc_equivalent, output->stabStatus, output->runInStatus);
-#else
-    printf("%ld,%f,%f,%f,%f,%u,%u,%u,%u,%f,%f,%f,%f,%u\r\n", (uint32_t)(output->timestamp/1000000),
-                output->gas_estimate_1, output->gas_estimate_2, output->gas_estimate_3, output->gas_estimate_4,
-                output->gas_accuracy_1, output->gas_accuracy_2, output->gas_accuracy_3, output->gas_accuracy_4,
-                output->raw_pressure, output->raw_temp, output->raw_humidity, output->raw_gas, output->raw_gas_index);
-#endif
-*/
 }
 
 void bme690_app_start()
