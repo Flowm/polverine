@@ -24,7 +24,6 @@
 
 #include "esp_log.h"
 #include "esp_mac.h"
-#include "peripherals.h"
 #include "esp_pm.h"
 #include "leds.h"
 
@@ -56,49 +55,24 @@ static const char *TAG = "power_management";
     #endif
 }
 
-void gpio_init(void)
-{
-    esp_rom_gpio_pad_select_gpio(R_LED_PIN);
-    gpio_set_direction(R_LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(R_LED_PIN, 0);
-    //gpio_hold_en(R_LED_PIN);
-
-    esp_rom_gpio_pad_select_gpio(G_LED_PIN);
-    gpio_set_direction(G_LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(G_LED_PIN, 0);
-    //gpio_hold_en(G_LED_PIN);
-
-    esp_rom_gpio_pad_select_gpio(B_LED_PIN);
-    gpio_set_direction(B_LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(B_LED_PIN, 0);
-    //gpio_hold_en(B_LED_PIN);
-
-    gpio_config_t io_conf = {};
-    io_conf.intr_type = GPIO_INTR_DISABLE;  // Disable interrupt
-    io_conf.mode = GPIO_MODE_INPUT;         // Set as input mode
-    io_conf.pin_bit_mask = (1ULL << BOOT_BUTTON);  // Bit mask for GPIO0
-    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;     // Enable pull-up
-    io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE; // Disable pull-down
-    gpio_config(&io_conf);
-    
-}
-
 
 void app_main(void)
 {
-    
+    vTaskDelay(1000 / (portTICK_PERIOD_MS));
+
     uint8_t mac[6];
     esp_efuse_mac_get_default(mac);
     snprintf(uniqueId, sizeof(uniqueId), "%02X%02X%02X%02X%02X%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
     snprintf(shortId, sizeof(shortId), "%02X%02X%02X", mac[3], mac[4], mac[5]);
 
-    gpio_init();
+    button_init();
+    leds_init(); 
     pm_init();
 
     ESP_LOGI(TAG, "[APP] Startup..");
     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
-    printf("POLVERINE ID: %s", uniqueId);
+    printf("POLVERINE ID: %s\r\n", uniqueId);
  
     esp_log_level_set("*", ESP_LOG_ERROR);
     ESP_ERROR_CHECK(esp_event_loop_create_default());

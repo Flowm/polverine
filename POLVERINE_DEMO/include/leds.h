@@ -16,6 +16,8 @@
 #define STATUS_NOT_ENABLED 9
 
 void leds_app_start();
+void leds_init();
+void button_init();
 
 extern char stsMain;
 extern char stsBMV080;
