@@ -8,7 +8,7 @@
 
 const char *TAG = "mqtt_polverine";
 
-const char *TEMPLATE_POLVERINE_MQTT = "{\"uri\":\"mqtt://xxxxxxxxx\",\"user\":\"xxxxxxxxx\",\"pwd\":\"xxxxxxxxx\",\"clientid\":\"%s\"}";
+const char *TEMPLATE_POLVERINE_MQTT = "{\"uri\":\"mqtt://mqttserver.local\",\"user\":\"username\",\"pwd\":\"userpassword\",\"clientid\":\"%s\"}";
 const char *TEMPLATE_POLVERINE_TOPIC = "{\"bmv080\":\"polverine/%s/bmv080\",\"bme690\":\"polverine/%s/bme690\",\"cmd\":\"polverine/%s/cmd\"}";
 
 #define DEFAULT_LEN 256
@@ -21,6 +21,7 @@ cJSON *topic = 0;
 void mqtt_default_init(const char *id)
 {
     snprintf((char * __restrict__)DEFAULT_POLVERINE_MQTT,DEFAULT_LEN,TEMPLATE_POLVERINE_MQTT,id);
+    //snprintf((char * __restrict__)DEFAULT_POLVERINE_MQTT,DEFAULT_LEN,TEMPLATE_POLVERINE_MQTT);
     snprintf((char * __restrict__)DEFAULT_POLVERINE_TOPIC,DEFAULT_LEN,TEMPLATE_POLVERINE_TOPIC,id,id,id);
 }
 

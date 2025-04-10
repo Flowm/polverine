@@ -44,7 +44,7 @@ static const char *TAG = "power_management";
         esp_pm_config_t pm_config = {
             .max_freq_mhz = 80,
             .min_freq_mhz = 80,
-            .light_sleep_enable = false
+            .light_sleep_enable = true
         };
 
         esp_err_t err = esp_pm_configure(&pm_config);
