@@ -19,6 +19,7 @@
 #include "peripherals.h"
 #include "sensorbuffer.h"
 #include "leds.h"
+#include "polverine_cfg.h"
 
 #define SID_BME69X                      UINT16_C(0x093)
 #define SID_BME69X_X8                   UINT16_C(0x057)
@@ -36,6 +37,7 @@ extern uint8_t *bsecInstance[NUM_OF_SENS];
 static i2c_master_dev_handle_t dev_handle;
 static i2c_master_bus_handle_t bus_handle;
 
+extern void bme690_publish(const char *buffer);
 extern char shortId[7];
 
 /* BME communication methods */
@@ -111,7 +113,7 @@ void bme690_task(void *)
     return_values_init ret = {BME69X_OK, BSEC_OK};
 
     ret = bsec_iot_init(SAMPLE_RATE, bme69x_interface_init, state_load, config_load);
-	
+
 	if (ret.bme69x_status != BME69X_OK) {
 		printf("POLVERINE BME690 ERROR while initializing BME68x: %d\r\n", ret.bme69x_status);
         stsBME690 = STATUS_ERROR;
@@ -133,7 +135,7 @@ void bme690_task(void *)
     stsBME690 = STATUS_OK;
 
     bsec_iot_loop(state_save, get_timestamp_ms, output_ready);
-	
+
     i2c_deinit();
 }
 
@@ -149,7 +151,7 @@ static BME69X_INTF_RET_TYPE bme69x_i2c_read(uint8_t reg_addr, uint8_t *reg_data,
 
 static BME69X_INTF_RET_TYPE bme69x_i2c_write(uint8_t reg_addr, const uint8_t *reg_data, uint32_t len, void *intf_ptr)
 {
-static uint8_t buffer[257];    
+static uint8_t buffer[257];
 
     (void)intf_ptr;
 
@@ -190,7 +192,7 @@ static uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer)
     // ...
     // Load a previous library state from non-volatile memory, if available.
     //
-    // Return zero if loading was unsuccessful or no state was available, 
+    // Return zero if loading was unsuccessful or no state was available,
     // otherwise return length of loaded state string.
     // ...
     return 0;
@@ -203,7 +205,7 @@ static uint32_t config_load(uint8_t *config_buffer, uint32_t n_buffer)
 }
 
 static uint32_t get_timestamp_ms()
-{    
+{
      uint32_t system_current_time = xTaskGetTickCount() * portTICK_PERIOD_MS;
 
     return system_current_time;
@@ -219,6 +221,8 @@ static void state_save(const uint8_t *state_buffer, uint32_t length)
 
 extern volatile bool flBMV080Published;
 
+extern float extTempOffset;
+
 static void output_ready(outputs_t *output)
 {
 static char* buffer[600];
@@ -232,20 +236,54 @@ static char* buffer[600];
   sb_add(&aveVOC,output->breath_voc_equivalent);
 
 { // called 1 time every 3 ? (4.25) seconds, demultiplied to 1 data out every minute
-    if(flBMV080Published)
-    {
-        snprintf((char * __restrict__)buffer,600,"{\"topic\":\"bme690\",\"data\":{\"ID\":\"%s\",\"R\":%.2f,\"T\":%.2f,\"P\":%.2f,\"H\":%.2f,\"IAQ\":%.2f,\"ACC\":%.2f,\"CO2\":%.2f,\"VOC\":%.2f}}\n", 
-        shortId,
-        (float)(output->timestamp/1000000)/1000., sb_average(&aveT), sb_average(&aveP), sb_average(&aveH),
-        sb_average(&aveIAQ), sb_average(&aveACC), sb_average(&aveCO2), sb_average(&aveVOC));     
+//    static int demult = 20;
 
-        printf((char *)buffer);
+//    if(demult++ >= 20)
+
+    if (!PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080) {
+        snprintf((char * __restrict__)buffer,600,"{\"topic\":\"bme690\",\"data\":{\"ID\":\"%s\",\"R\":%.2f,\"T\":%.2f,\"P\":%.2f,\"H\":%.2f,\"IAQ\":%.2f,\"ACC\":%.2f,\"CO2\":%.2f,\"VOC\":%.2f,"
+                "\"mtof\":%.2f, \"bougb8\":%d, \"ltdt\":%d}}\n",
+                shortId,
+                (float)(output->timestamp/1000000)/1000., output->compensated_temperature, output->raw_pressure, output->compensated_humidity,
+                (float)output->iaq, (float)output->iaq_accuracy, output->co2_equivalent, output->breath_voc_equivalent,
+                extTempOffset, PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080, PLVN_CFG_BSEC_LOOP_DELAY_TIME_MS);
+
+        printf((const char *)buffer);
+    } 
+    else if(PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080 && flBMV080Published)
+    {
+        snprintf((char * __restrict__)buffer,600,"{\"topic\":\"bme690\",\"data\":{\"ID\":\"%s\",\"R\":%.2f,\"T\":%.2f,\"P\":%.2f,\"H\":%.2f,\"IAQ\":%.2f,\"ACC\":%.2f,\"CO2\":%.2f,\"VOC\":%.2f,"
+                "\"mtof\":%.2f, \"bougb8\":%d, \"ltdt\":%d}}\n",
+                shortId,
+                (float)(output->timestamp/1000000)/1000., sb_average(&aveT), sb_average(&aveP), sb_average(&aveH),
+                sb_average(&aveIAQ), sb_average(&aveACC), sb_average(&aveCO2), sb_average(&aveVOC),
+                extTempOffset, PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080, PLVN_CFG_BSEC_LOOP_DELAY_TIME_MS);
+
+        printf((const char *)buffer);
         flBMV080Published = false;
+        //demult = 0;
     }
-}    
+}
+  //gpio_set_level(G_LED_PIN, 0);
+  //gpio_hold_en(G_LED_PIN);
+  //gpio_deep_sleep_hold_en();
+
+/*
+#if (OUTPUT_MODE == IAQ)
+    printf("%ld,%f,%u,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f,%f\r\n", (uint32_t)(output->timestamp/1000000),
+                output->iaq, output->iaq_accuracy, output->static_iaq, output->raw_temp, output->raw_humidity, output->compensated_temperature,
+                output->compensated_humidity, output->raw_pressure, output->raw_gas, output->gas_percentage, output->co2_equivalent,
+                output->breath_voc_equivalent, output->stabStatus, output->runInStatus);
+#else
+    printf("%ld,%f,%f,%f,%f,%u,%u,%u,%u,%f,%f,%f,%f,%u\r\n", (uint32_t)(output->timestamp/1000000),
+                output->gas_estimate_1, output->gas_estimate_2, output->gas_estimate_3, output->gas_estimate_4,
+                output->gas_accuracy_1, output->gas_accuracy_2, output->gas_accuracy_3, output->gas_accuracy_4,
+                output->raw_pressure, output->raw_temp, output->raw_humidity, output->raw_gas, output->raw_gas_index);
+#endif
+*/
 }
 
-void bme690_app_start() 
+void bme690_app_start()
 {
   xTaskCreate(&bme690_task, "bme690_task", 60 * 1024, NULL, configMAX_PRIORITIES - 1, NULL);
 }

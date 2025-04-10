@@ -71,6 +71,8 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
+#include "polverine_cfg.h"
+
 
 static struct bme69x_conf bme69x_config[NUM_OF_SENS];
 static struct bme69x_dev bme69x[NUM_OF_SENS];
@@ -92,10 +94,10 @@ static bsec_library_return_t update_subscription(float sample_rate, uint8_t sens
     bsec_library_return_t status;
     bsec_sensor_configuration_t requested_virtual_sensors[NUM_USED_OUTPUTS];
     uint8_t n_requested_virtual_sensors = NUM_USED_OUTPUTS;
-    
+
     bsec_sensor_configuration_t required_sensor_settings[BSEC_MAX_PHYSICAL_SENSOR];
     uint8_t n_required_sensor_settings = BSEC_MAX_PHYSICAL_SENSOR;
-    
+
 	requested_virtual_sensors[0].sensor_id = BSEC_OUTPUT_RAW_PRESSURE;
     requested_virtual_sensors[0].sample_rate = sample_rate;
     requested_virtual_sensors[1].sensor_id = BSEC_OUTPUT_RAW_TEMPERATURE;
@@ -266,6 +268,75 @@ static void bsec_new_data(uint8_t sens_no, bsec_output_t *bsec_outputs, uint8_t 
     output_ready(&output);
 }
 
+#include "bsec_temp_offset_tab_target_board.h"
+static float _get_board_specific_temp_offset(float temperature_raw) 
+{
+    bool use_usb = false;
+    bool use_wifi = false;
+    uint8_t len;
+    uint8_t i;
+    const temp_offset_cf_param_t *tocp_cfg = NULL;
+    const temp_offset_cf_param_t *tmp;
+    
+    if ((temperature_raw < -45.0f) || (temperature_raw > 85)) {
+        return 0;
+    }
+
+#if PLVN_CFG_BMV080_CONNECTIVITY_USB && PLVN_CFG_BMV080_CONNECTIVITY_WIFI
+#error "conflicting configurations"
+#endif
+    
+#if PLVN_CFG_BMV080_CONNECTIVITY_USB     
+    use_usb = true;
+#endif
+
+#if PLVN_CFG_BMV080_CONNECTIVITY_WIFI
+    use_wifi = true;
+#endif
+    if (use_wifi) {
+        switch (PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S) {
+            case 30:
+                tocp_cfg = tocp_cfg1;
+                len = sizeof(tocp_cfg1)/sizeof(tocp_cfg1[0]);
+                break;
+            case 60:
+                tocp_cfg = tocp_cfg2;
+                len = sizeof(tocp_cfg2)/sizeof(tocp_cfg2[0]);
+                break;
+        }
+    }
+
+    if (use_usb) {
+        switch (PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S) {
+            case 30:
+                tocp_cfg = tocp_cfg3;
+                len = sizeof(tocp_cfg3)/sizeof(tocp_cfg3[0]);
+                break;
+            case 60:
+                tocp_cfg = tocp_cfg4;
+                len = sizeof(tocp_cfg4)/sizeof(tocp_cfg4[0]);
+                break;
+        }
+    }
+    
+    if (tocp_cfg) {
+        for (i = 0; i < len; i++) {
+            tmp = tocp_cfg + i;
+            float t = temperature_raw;
+            float res;
+            if ((temperature_raw >= tmp->range_min) && (temperature_raw <= tmp->range_max)) {
+                const float *w = tmp->w;
+                res = w[0] + w[1] * t + w[2] * t*t + w[3] * t*t*t + tmp->offset_ref;
+                return res;
+            }
+        }
+    }
+
+    return 0;
+}
+
+
+
 static uint8_t process_data(int64_t currTimeNs, struct bme69x_data data, int32_t bsec_process_data, uint8_t sens_no, output_ready_fct output_ready)
 {
     bsec_input_t inputs[BSEC_MAX_PHYSICAL_SENSOR] = {0}; /* Temp, Pres, Hum & Gas */
@@ -275,6 +346,11 @@ static uint8_t process_data(int64_t currTimeNs, struct bme69x_data data, int32_t
     /* Checks all the required sensor inputs, required for the BSEC library for the requested outputs */
     if (BSEC_CHECK_INPUT(bsec_process_data, BSEC_INPUT_HEATSOURCE))
     {
+#ifdef BME69X_USE_FPU
+        extTempOffset = _get_board_specific_temp_offset(data.temperature);
+#else
+        extTempOffset = _get_board_specific_temp_offset(data.temperature*0.01f);
+#endif
         inputs[nInputs].sensor_id = BSEC_INPUT_HEATSOURCE;
         inputs[nInputs].signal = extTempOffset;
         inputs[nInputs].time_stamp = currTimeNs;
@@ -542,10 +618,10 @@ void bsec_iot_loop(state_save_fct state_save, get_timestamp_ms_fct get_timestamp
 		opMode[i] = sensor_settings[i].op_mode;
 		sensor_settings[i].next_call = 0;
 	}
-	
+
     while (1)
     {
-        vTaskDelay(50); // Minimum 1ms yield for ESP32
+        vTaskDelay(PLVN_CFG_BSEC_LOOP_DELAY_TIME_MS); // Minimum 1ms yield for ESP32
         for (uint8_t sens_no = 0; sens_no < n_sensors; sens_no++)
         {
             uint8_t nFieldsLeft = 0;

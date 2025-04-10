@@ -7,6 +7,7 @@
 #include "mqtt_client.h"
 #include "driver/temperature_sensor.h"
 #include "leds.h"
+#include "polverine_cfg.h"
 
 spi_device_handle_t hspi;
 //extern bool isConnected;
@@ -23,10 +24,10 @@ static char buffer[256] = {0};
 float temperature;
   temperature_sensor_get_celsius(temp_sensor, &temperature); 
 
-  snprintf(buffer,256,"{\"topic\":\"bmv080\",\"data\":{\"ID\":\"%s\",\"R\":%.1f,\"PM10\":%.0f,\"PM25\":%.0f,\"PM1\":%.0f,\"obst\":\"%s\",\"omr\":\"%s\",\"T\":%.1f}}\n", shortId,
+  snprintf(buffer,256,"{\"topic\":\"bmv080\",\"data\":{\"ID\":\"%s\",\"R\":%.1f,\"PM10\":%.0f,\"PM25\":%.0f,\"PM1\":%.0f,\"obst\":\"%s\",\"omr\":\"%s\",\"T\":%.1f, \"dcp\":%d}}\n", shortId,
         bmv080_output.runtime_in_sec, bmv080_output.pm10_mass_concentration, bmv080_output.pm2_5_mass_concentration, bmv080_output.pm1_mass_concentration, 
         (bmv080_output.is_obstructed ? "yes" : "no"), (bmv080_output.is_outside_measurement_range ? "yes" : "no"),
-        temperature);     
+        temperature, PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S);     
 
   printf(buffer);
 
