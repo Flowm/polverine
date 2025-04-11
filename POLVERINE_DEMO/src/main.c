@@ -73,6 +73,7 @@ void app_main(void)
     ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
     ESP_LOGI(TAG, "[APP] IDF version: %s", esp_get_idf_version());
     printf("POLVERINE ID: %s\r\n", uniqueId);
+    printf("POLVERINE FW: PD_1.0.0\r\n");
  
     esp_log_level_set("*", ESP_LOG_ERROR);
     ESP_ERROR_CHECK(esp_event_loop_create_default());
