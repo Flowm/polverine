@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "peripherals.h": "c",
-        "gpio.h": "c"
+        "gpio.h": "c",
+        "bsec_temp_offset_tab_target_board.h": "c"
     }
 }
