@@ -114,8 +114,8 @@ Refer to the [README](./mongodb/README.md) file in mongodb folder for database d
 
 # Arduino IDE support
 
-Polverine board is fully compatible with the Arduino IDE. To use it, install the ESP32 support package by Espressif Systems, and select "ESP32 Dev Module" as the board in the IDE.
+Polverine board is fully compatible with the Arduino IDE. To use it, install the ESP32 support package by Espressif Systems, and select "ESP32S3 Dev Module" as the board in the IDE.
 
 Debugging features are fully supported.
 
-To begin programming, use the ARDUINO_BLINK example. For sensor integration, download the SDKs for the BME690 and BMV080 from the Bosch Sensortec website.
+To begin programming, use the ARDUINO_BLINK example. For sensor integration, download the SDKs for the BME690 and BMV080 sensors from the Bosch Sensortec website.
