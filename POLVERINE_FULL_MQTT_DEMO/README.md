@@ -101,3 +101,6 @@ The POLVERINE_FULL_MQTT_DEMO puts the ESP32-S3 MCU in low power mode that disabl
 
 
 When in bootloader mode the RGB led is lit.
+
+## Windows installation step by step
+Follow the excellent article on [hackster.io](https://www.hackster.io/lucasguocn/air-quality-gas-and-particles-monitor-using-the-polverine-f15934) by Lucas Guo.
