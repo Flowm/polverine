@@ -17,6 +17,7 @@
 #include "mqtt_client.h"
 #include "driver/temperature_sensor.h"
 #include "ble_main.h"
+#include "polverine_cfg.h"
 
 /** @brief SPI device handle */
 spi_device_handle_t hspi;
@@ -153,7 +154,7 @@ void bmv080_task(void *pvParameter)
     printf("Default duty_cycling_period: %d s\r\n", duty_cycling_period);
 
     /* Set custom parameter "duty_cycling_period" */
-    duty_cycling_period = 60;
+    duty_cycling_period = PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S;
     bmv080_current_status = bmv080_set_parameter(handle, "duty_cycling_period", (void*)&duty_cycling_period);
 
     printf("Customized duty_cycling_period: %d s\r\n", duty_cycling_period);
