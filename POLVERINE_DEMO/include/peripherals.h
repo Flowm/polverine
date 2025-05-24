@@ -20,7 +20,7 @@ extern "C" {
 #define R_LED_PIN 47 // GPIO pin connected to onboard LED
 #define G_LED_PIN 48 // GPIO pin connected to onboard LED
 #define B_LED_PIN 38 // GPIO pin connected to onboard LED
-
+#define BOOT_BUTTON GPIO_NUM_0
 
 #ifdef __cplusplus  
 }

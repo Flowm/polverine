@@ -4,23 +4,6 @@
 #include <string.h>
 
 
-void parse(const char *buffer)
-{
-    printf("In Parse\r\n");
-/*    
-    if(!strncmp(buffer,"TOPIC=",6))
-    {
-    printf("In Topic\r\n");
-       topic_store_write(&buffer[6]); 
-    }
-    else if(!strncmp(buffer,"MQTT=",6))
-    {
-    printf("In MQTT\r\n");
-       mqtt_store_write(&buffer[6]); 
-    }
-*/       
-}
-
 
 #define BUFFER_SIZE 1024
 
@@ -38,8 +21,6 @@ void usb_task(void *)
             
             // Write back to USB CDC
             usb_serial_jtag_write_bytes(buf, len, portMAX_DELAY);
-            buf[len] = 0;
-            parse((char *)buf);
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
