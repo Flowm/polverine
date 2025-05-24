@@ -5,7 +5,6 @@
 #include "bmv080.h"
 #include "bmv080_io.h"
 #include "mqtt_client.h"
-#include "driver/temperature_sensor.h"
 #include "esp_log.h"
 
 #include "polverine_cfg.h"
@@ -15,7 +14,6 @@ spi_device_handle_t hspi;
 //extern esp_mqtt_client_handle_t client;
 extern void bmv080_publish(const char *buffer);
 extern char shortId[7];
-temperature_sensor_handle_t temp_sensor = NULL;
 volatile bool flBMV080Published = false;
 
 
@@ -25,13 +23,11 @@ static char buffer[256] = {0};
 //  gpio_set_level(B_LED_PIN, 1);
 //  gpio_hold_en(B_LED_PIN);
 
-float temperature;
-  temperature_sensor_get_celsius(temp_sensor, &temperature);
 
-  snprintf(buffer,256,"{\"ID\":\"%s\",\"R\":%.1f,\"PM10\":%.0f,\"PM25\":%.0f,\"PM1\":%.0f,\"obst\":\"%s\",\"omr\":\"%s\",\"T\":%.1f, \"dcp\":%d}\n", shortId,
+  snprintf(buffer,256,"{\"ID\":\"%s\",\"R\":%.1f,\"PM10\":%.0f,\"PM25\":%.0f,\"PM1\":%.0f,\"obst\":\"%s\",\"omr\":\"%s\",\"dcp\":%d}\n", shortId,
         bmv080_output.runtime_in_sec, bmv080_output.pm10_mass_concentration, bmv080_output.pm2_5_mass_concentration, bmv080_output.pm1_mass_concentration,
         (bmv080_output.is_obstructed ? "yes" : "no"), (bmv080_output.is_outside_measurement_range ? "yes" : "no"),
-        temperature, PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S);
+        PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S);
 
 //  printf(buffer);
 
@@ -41,8 +37,7 @@ float temperature;
   ESP_LOGI("BMV080", "PM10: %.0f µg/m³, PM2.5: %.0f µg/m³, PM1: %.0f µg/m³, Runtime: %.1f s", 
           bmv080_output.pm10_mass_concentration, bmv080_output.pm2_5_mass_concentration, 
           bmv080_output.pm1_mass_concentration, bmv080_output.runtime_in_sec);
-  ESP_LOGI("BMV080", "MCU Temp: %.1f°C, Obstructed: %s, Out of range: %s", 
-          temperature, 
+  ESP_LOGI("BMV080", "Obstructed: %s, Out of range: %s", 
           (bmv080_output.is_obstructed ? "YES" : "NO"), 
           (bmv080_output.is_outside_measurement_range ? "YES" : "NO"));
   
@@ -150,9 +145,6 @@ void bmv080_task(void *pvParameter)
   gpio_hold_en(G_LED_PIN);
 
 
- temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 80);
- temperature_sensor_install(&temp_sensor_config, &temp_sensor);
- temperature_sensor_enable(temp_sensor);
 
 
   for(;;)

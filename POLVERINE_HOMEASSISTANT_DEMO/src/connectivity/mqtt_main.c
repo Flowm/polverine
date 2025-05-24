@@ -483,8 +483,8 @@ void bme690_publish(const char *buffer)
     if(acc) cJSON_AddNumberToObject(ha_json, "iaq_accuracy", acc->valuedouble);
     if(siaq) cJSON_AddNumberToObject(ha_json, "static_iaq", siaq->valuedouble);
     if(gasp) cJSON_AddNumberToObject(ha_json, "gas_percentage", gasp->valuedouble);
-    if(stab) cJSON_AddBoolToObject(ha_json, "stabilization_status", stab->valuedouble > 0.5);
-    if(run) cJSON_AddBoolToObject(ha_json, "run_in_status", run->valuedouble > 0.5);
+    if(stab) cJSON_AddStringToObject(ha_json, "stabilization_status", stab->valuedouble > 0.5 ? "true" : "false");
+    if(run) cJSON_AddStringToObject(ha_json, "run_in_status", run->valuedouble > 0.5 ? "true" : "false");
     
     char *ha_payload = cJSON_PrintUnformatted(ha_json);
     esp_mqtt_client_publish(client, bme690_state_topic, ha_payload, 0, 1, 0);  // QoS 1 for reliability
@@ -520,10 +520,10 @@ void bmv080_publish(const char *buffer)
     
     // Add boolean values for obstructed and out of range
     if(obst && cJSON_IsString(obst)) {
-        cJSON_AddBoolToObject(ha_json, "obstructed", strcmp(obst->valuestring, "yes") == 0);
+        cJSON_AddStringToObject(ha_json, "obstructed", strcmp(obst->valuestring, "yes") == 0 ? "true" : "false");
     }
     if(omr && cJSON_IsString(omr)) {
-        cJSON_AddBoolToObject(ha_json, "out_of_range", strcmp(omr->valuestring, "yes") == 0);
+        cJSON_AddStringToObject(ha_json, "out_of_range", strcmp(omr->valuestring, "yes") == 0 ? "true" : "false");
     }
     
     char *ha_payload = cJSON_PrintUnformatted(ha_json);
@@ -537,6 +537,7 @@ void bmv080_publish(const char *buffer)
 // Forward declarations
 static void system_metrics_task(void *pvParameter);
 void mqtt_start_system_metrics_task(void);
+static TaskHandle_t system_metrics_task_handle = NULL;
 
 // Publish ESP32 system metrics
 void system_metrics_publish(void)
@@ -597,8 +598,12 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         isConnected = true;
         mqtt_connection_start_time = 0;
         
-        // Publish online status
-        esp_mqtt_client_publish(client, availability_topic, "online", 0, 1, true);
+        // Publish online status FIRST with QoS 1 and retain
+        int msg_id = esp_mqtt_client_publish(client, availability_topic, "online", 0, 1, true);
+        ESP_LOGI(TAG, "Published availability 'online' to %s, msg_id=%d", availability_topic, msg_id);
+        
+        // Wait a bit to ensure availability is published before discovery
+        vTaskDelay(pdMS_TO_TICKS(100));
         
         // Send Home Assistant discovery messages
         send_ha_discovery();
@@ -608,9 +613,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         ESP_LOGI(TAG, "MQTT_EVENT_DISCONNECTED");
         isConnected = false;
         
-        // Attempt to reconnect after a short delay
-        ESP_LOGI(TAG, "Will attempt to reconnect in 5 seconds...");
-        vTaskDelay(pdMS_TO_TICKS(5000));
+        // Attempt to reconnect with shorter delay for better availability
+        ESP_LOGI(TAG, "Will attempt to reconnect in 2 seconds...");
+        vTaskDelay(pdMS_TO_TICKS(2000));
         
         ESP_LOGI(TAG, "Attempting to reconnect to MQTT broker...");
         esp_err_t err = esp_mqtt_client_reconnect(client);
@@ -664,7 +669,7 @@ void mqtt_app_start(void)
     mqtt_cfg.session.last_will.retain = true;
     
     mqtt_cfg.network.timeout_ms = 10000;
-    mqtt_cfg.session.keepalive = 15;
+    mqtt_cfg.session.keepalive = 30;  // Increased for better stability
     
     ESP_LOGI(TAG, "MQTT client configuration prepared, broker URI: %s", mqtt_cfg.broker.address.uri);
     
@@ -692,18 +697,38 @@ void mqtt_app_start(void)
     ESP_LOGI(TAG, "System metrics task started");
 }
 
-// Task to periodically publish system metrics
+// Task to periodically publish system metrics and availability
 static void system_metrics_task(void *pvParameter)
 {
     const TickType_t xDelay = 30000 / portTICK_PERIOD_MS;  // Publish every 30 seconds
+    const TickType_t xAvailabilityDelay = 60000 / portTICK_PERIOD_MS;  // Availability every 60 seconds
+    TickType_t lastAvailabilityTime = 0;
     
     for(;;) {
         vTaskDelay(xDelay);
-        system_metrics_publish();
+        
+        if (isConnected) {
+            // Publish system metrics
+            system_metrics_publish();
+            
+            // Check if it's time to send availability heartbeat
+            TickType_t currentTime = xTaskGetTickCount();
+            if ((currentTime - lastAvailabilityTime) >= xAvailabilityDelay) {
+                int msg_id = esp_mqtt_client_publish(client, availability_topic, "online", 0, 1, true);
+                ESP_LOGI(TAG, "Availability heartbeat sent, msg_id=%d", msg_id);
+                lastAvailabilityTime = currentTime;
+            }
+        }
     }
 }
 
 void mqtt_start_system_metrics_task(void)
 {
-    xTaskCreate(&system_metrics_task, "system_metrics_task", 4096, NULL, 5, NULL);
+    // Only create task if it doesn't already exist
+    if (system_metrics_task_handle == NULL) {
+        xTaskCreate(&system_metrics_task, "system_metrics_task", 4096, NULL, 5, &system_metrics_task_handle);
+        ESP_LOGI(TAG, "System metrics task created");
+    } else {
+        ESP_LOGI(TAG, "System metrics task already exists");
+    }
 }
