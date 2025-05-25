@@ -82,7 +82,7 @@ Brief description of the Demo Projects contained in this repository.
 For more information [README](/POLVERINE_DEMO/README.md)
 - **POLVERINE_FULL_MQTT_DEMO** full application implementing publishing sensor data to MQTT broker. For more information [README](/POLVERINE_FULL_MQTT_DEMO/README.md)
 - **POLVERINE_FULL_BLE_DEMO** full application implementing publishing sensor data with BLE serial emulation. For more information [README](/POLVERINE_FULL_BLE_DEMO/README.md)
-- **POLVERINE_HOMEASSISTANT_DEMO** full application implementing publishing sensor data to MQTT broker compatible with Home Assistant. For more information [README](/POLVERINE_HOMEASSISTANT_DEMO/README.md) and [README_SETUP](/POLVERINE_HOMEASSISTANT_DEMO/README_SETUP.md)
+- **POLVERINE_HOMEASSISTANT_DEMO** full application implementing publishing sensor data to MQTT broker compatible with Home Assistant. For more information [README](/POLVERINE_HOMEASSISTANT_DEMO/README.md) and [README_SETUP](/POLVERINE_HOMEASSISTANT_DEMO/README_SETUP.md) for Home Assistant configuration
 
 ## First time initialization
 
