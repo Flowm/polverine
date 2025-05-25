@@ -1,5 +1,7 @@
 ## POLVERINE_DEMO: Stream sensor data over USB
 
+This is the default demo firmware pre-installed on Polverine.
+
 ### A Complete yet Simple Demo
 
 This firmware collects sensor measurements and transmits them using the ESP32-S3 module's native USB connection. 

@@ -78,8 +78,11 @@ Each project that uses the Bosch SDKs will contain a README file with instructio
 Brief description of the Demo Projects contained in this repository.
 
 - **POLVERINE_BLINK** this is the "hello world" for the embedded firmware: just blinks the RGB led. For more information [README](/POLVERINE_BLINK/README.md)
-- **POLVERINE_DEMO** basic example of reading data from the sensor and streraming to the USB port. For more information [README](/POLVERINE_DEMO/README.md)
+- **POLVERINE_DEMO** basic example of reading data from the sensor and streraming to the USB port. This is the default demo firmware pre-installed on Polverine.
+For more information [README](/POLVERINE_DEMO/README.md)
 - **POLVERINE_FULL_MQTT_DEMO** full application implementing publishing sensor data to MQTT broker. For more information [README](/POLVERINE_FULL_MQTT_DEMO/README.md)
+- **POLVERINE_FULL_BLE_DEMO** full application implementing publishing sensor data with BLE serial emulation. For more information [README](/POLVERINE_FULL_BLE_DEMO/README.md)
+- **POLVERINE_HOMEASSISTANT_DEMO** full application implementing publishing sensor data to MQTT broker compatible with Home Assistant. For more information [README](/POLVERINE_HOMEASSISTANT_DEMO/README.md) and [README_SETUP](/POLVERINE_HOMEASSISTANT_DEMO/README_SETUP.md)
 
 ## First time initialization
 
@@ -118,4 +121,4 @@ Polverine board is fully compatible with the Arduino IDE. To use it, install the
 
 Debugging features are fully supported.
 
-To begin programming, use the ARDUINO_BLINK example. For sensor integration, download the SDKs for the BME690 and BMV080 sensors from the Bosch Sensortec website.
+To begin programming, use the **ARDUINO_BLINK** example. For sensor integration, download the SDKs for the BME690 and BMV080 sensors from the Bosch Sensortec website.
