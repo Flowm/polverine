@@ -7,6 +7,8 @@ We support programming the Polverine board on Linux and Windows 11 OSs.
 
 A PC with Linux or Windows, and an USB-C cable is all you need to program the Polverine board.
 
+For more information and Polverine FAQ go to our [website](https://www.blackiot.swiss/polverine_faq).
+
 ## Visual Studio Code with PlatformIO
 Visual Studio Code can be freely downloaded and from the [CODE site](https://code.visualstudio.com/)
 Once installed on your PC, select and install PlatformIO from the "Extensions Marketplace".
