@@ -127,6 +127,7 @@ void bmv080_task(void *pvParameter)
       printf("Reading BMV080 failed with status %d\r\n", (int)bmv080_current_status);
     }
   }
+  vTaskDelete(NULL);
 }
 
 

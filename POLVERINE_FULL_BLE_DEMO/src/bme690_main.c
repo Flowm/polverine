@@ -140,6 +140,7 @@ void bme690_task(void *)
     bsec_iot_loop(state_save, get_timestamp_ms, output_ready);
 	
     i2c_deinit();
+    vTaskDelete(NULL);
 }
 
 

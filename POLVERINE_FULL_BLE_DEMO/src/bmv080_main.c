@@ -191,6 +191,7 @@ void bmv080_task(void *pvParameter)
       gpio_set_level(R_LED_PIN, 0);
     }
   }
+  vTaskDelete(NULL);
 }
 
 /**

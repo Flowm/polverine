@@ -134,6 +134,7 @@ void leds_task(void *pvParameter)
         delay(500);
     }
     }
+    vTaskDelete(NULL);
 }
 
 

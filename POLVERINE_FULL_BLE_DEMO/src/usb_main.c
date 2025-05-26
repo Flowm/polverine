@@ -29,6 +29,7 @@ void usb_task(void *)
         }
         vTaskDelay(pdMS_TO_TICKS(10));
     }
+    vTaskDelete(NULL);
 }
 
 void usb_app_start(void) 

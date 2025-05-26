@@ -52,7 +52,7 @@ void bmv080_task(void *pvParameter)
   if(comm_status != ESP_OK)
   {
     printf("Initializing the SPI communication interface failed with status %d\r\n", (int)comm_status);
-    while (1);
+    vTaskDelete(NULL);
   }
 
 	uint16_t major = 0;
@@ -71,7 +71,7 @@ void bmv080_task(void *pvParameter)
     printf("Getting BMV080 sensor driver version failed with BMV080 status %d\r\n", bmv080_current_status);
     gpio_set_level(R_LED_PIN, 1);
     gpio_hold_en(R_LED_PIN);
-    while (1);
+    vTaskDelete(NULL);
   }
   printf("BMV080 sensor driver version: %d.%d.%d.%s.%ld\r\n", major, minor, patch, git_hash, commits_ahead);
   gpio_set_level(G_LED_PIN, 1);
@@ -88,7 +88,7 @@ void bmv080_task(void *pvParameter)
     printf("Initializing BMV080 failed with status %d\r\n", (int)bmv080_current_status);
     gpio_set_level(R_LED_PIN, 1);
     gpio_hold_en(R_LED_PIN);
-    while (1);
+    vTaskDelete(NULL);
   }
   gpio_set_level(G_LED_PIN, 1);
   gpio_hold_en(G_LED_PIN);
@@ -102,7 +102,7 @@ void bmv080_task(void *pvParameter)
     printf("Resetting BMV080 sensor unit failed with BMV080 status %d\r\n", (int)bmv080_current_status);
     gpio_set_level(R_LED_PIN, 1);
     gpio_hold_en(R_LED_PIN);
-    while (1);
+    vTaskDelete(NULL);
   }
   gpio_set_level(G_LED_PIN, 1);
   gpio_hold_en(G_LED_PIN);
@@ -132,7 +132,7 @@ void bmv080_task(void *pvParameter)
     printf("Starting BMV080 failed with status %d\r\n", (int)bmv080_current_status);
     gpio_set_level(R_LED_PIN, 1);
     gpio_hold_en(R_LED_PIN);
-    while (1);
+    vTaskDelete(NULL);
   }
   gpio_set_level(G_LED_PIN, 1);
   gpio_hold_en(G_LED_PIN);
@@ -157,6 +157,7 @@ void bmv080_task(void *pvParameter)
       gpio_set_level(R_LED_PIN, 0);
     }
   }
+  vTaskDelete(NULL);
 }
 
 
