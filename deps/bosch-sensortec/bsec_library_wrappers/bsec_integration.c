@@ -271,53 +271,29 @@ static void bsec_new_data(uint8_t sens_no, bsec_output_t *bsec_outputs, uint8_t 
 #include "bsec_temp_offset_tab_target_board.h"
 static float _get_board_specific_temp_offset(float temperature_raw) 
 {
-    bool use_usb = false;
-    bool use_wifi = false;
-    uint8_t len;
     uint8_t i;
+    uint8_t len;
     const temp_offset_cf_param_t *tocp_cfg = NULL;
     const temp_offset_cf_param_t *tmp;
     
     if ((temperature_raw < -45.0f) || (temperature_raw > 85)) {
         return 0;
     }
-
-#if PLVN_CFG_BMV080_CONNECTIVITY_USB && PLVN_CFG_BMV080_CONNECTIVITY_WIFI
-#error "conflicting configurations"
-#endif
     
-#if PLVN_CFG_BMV080_CONNECTIVITY_USB     
-    use_usb = true;
-#endif
-
-#if PLVN_CFG_BMV080_CONNECTIVITY_WIFI
-    use_wifi = true;
-#endif
-    if (use_wifi) {
-        switch (PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S) {
-            case 30:
-                tocp_cfg = tocp_cfg1;
-                len = sizeof(tocp_cfg1)/sizeof(tocp_cfg1[0]);
+    const temp_profile_tab_entry_t *te;
+    
+    
+    for (i = 0; i < sizeof(temp_profile_tab)/sizeof(temp_profile_tab[0]); i++) {
+        te = temp_profile_tab + i;
+        if (PLVN_CFG_TEMP_PROFILE_CLIENT_ID == te->client_id) {
+            if (PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S == te->map.bmv080_duty_cycle_period_s) {
+                tocp_cfg = te->map.tocp_cfg;
+                len = te->map.tocp_len;
                 break;
-            case 60:
-                tocp_cfg = tocp_cfg2;
-                len = sizeof(tocp_cfg2)/sizeof(tocp_cfg2[0]);
-                break;
+            }
         }
     }
 
-    if (use_usb) {
-        switch (PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S) {
-            case 30:
-                tocp_cfg = tocp_cfg3;
-                len = sizeof(tocp_cfg3)/sizeof(tocp_cfg3[0]);
-                break;
-            case 60:
-                tocp_cfg = tocp_cfg4;
-                len = sizeof(tocp_cfg4)/sizeof(tocp_cfg4[0]);
-                break;
-        }
-    }
     
     if (tocp_cfg) {
         for (i = 0; i < len; i++) {
