@@ -472,6 +472,7 @@ void bme690_publish(const char *buffer)
     cJSON *gasp = cJSON_GetObjectItemCaseSensitive(json, "GASP");
     cJSON *stab = cJSON_GetObjectItemCaseSensitive(json, "STAB");
     cJSON *run = cJSON_GetObjectItemCaseSensitive(json, "RUN");
+    cJSON *mtof = cJSON_GetObjectItemCaseSensitive(json, "mtof");
     
     // Add to HA JSON
     if(temp) cJSON_AddNumberToObject(ha_json, "temperature", temp->valuedouble);
@@ -485,6 +486,7 @@ void bme690_publish(const char *buffer)
     if(gasp) cJSON_AddNumberToObject(ha_json, "gas_percentage", gasp->valuedouble);
     if(stab) cJSON_AddStringToObject(ha_json, "stabilization_status", stab->valuedouble > 0.5 ? "true" : "false");
     if(run) cJSON_AddStringToObject(ha_json, "run_in_status", run->valuedouble > 0.5 ? "true" : "false");
+    if(mtof) cJSON_AddNumberToObject(ha_json, "mtof", mtof->valuedouble);
     
     char *ha_payload = cJSON_PrintUnformatted(ha_json);
     esp_mqtt_client_publish(client, bme690_state_topic, ha_payload, 0, 1, 0);  // QoS 1 for reliability
