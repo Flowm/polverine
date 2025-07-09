@@ -46,3 +46,63 @@ temp_offset_cf_param_t tocp_cfg4[] = {
     {57.5f, 65, {-120.5f, 4.03f, -0.0311f, 0}, OFFSET_REF_CFG4},
     {65, 85,    {10.05f, 0, 0, 0}, OFFSET_REF_CFG4},
 };
+
+
+
+#define OFFSET_REF_CFG6 1.3f
+const 
+temp_offset_cf_param_t tocp_cfg6[] = {
+    {-45, -1.3f,{9.12f, 0.0f, 0, 0}, OFFSET_REF_CFG6},
+    {-1.3f, 10.37f,{9.2f, 0.0541f, 0, 0}, OFFSET_REF_CFG6},
+    {10.37f, 37.2f,{9.2f, 0.0541f, 0, 0}, OFFSET_REF_CFG6},
+    {37.2f, 56,    {8.72f, 0.0658f, 0, 0}, OFFSET_REF_CFG6},
+    {65, 85,    {12.29f, 0, 0, 0}, OFFSET_REF_CFG6},
+};
+
+#define OFFSET_REF_CFG7 1.3f
+const 
+temp_offset_cf_param_t tocp_cfg7[] = {
+    {-45, 0.37f,{11.62f, 0.0f, 0, 0}, OFFSET_REF_CFG7},
+    {0.37f, 13.61f,{11.6f, 0.0502f, 0, 0}, OFFSET_REF_CFG7},
+    {13.61f, 39.75f,{11.6f, 0.0502f, 0, 0}, OFFSET_REF_CFG7},
+    {39.75f, 55.5f,    {11.4f, 0.0562f, 0, 0}, OFFSET_REF_CFG7},
+    {55.5f, 85,    {14.52f, 0, 0, 0}, OFFSET_REF_CFG7},
+};
+
+
+typedef struct {
+    uint8_t client_id;
+    struct {
+        uint16_t bmv080_duty_cycle_period_s;
+        const temp_offset_cf_param_t *tocp_cfg;
+        uint8_t tocp_len;
+    } map;
+} temp_profile_tab_entry_t;
+
+const temp_profile_tab_entry_t temp_profile_tab[] = {
+    {
+        0, 
+        {30, tocp_cfg1, sizeof(tocp_cfg1)/sizeof(tocp_cfg1[0])}
+    },
+    {
+        0, 
+        {60, tocp_cfg2, sizeof(tocp_cfg2)/sizeof(tocp_cfg2[0])}
+    },
+    {
+        1, 
+        {30, tocp_cfg3, sizeof(tocp_cfg3)/sizeof(tocp_cfg3[0])}
+    },
+    {
+        1, 
+        {60, tocp_cfg4, sizeof(tocp_cfg4)/sizeof(tocp_cfg4[0])}
+    },
+    {
+        2, 
+        {60, tocp_cfg6, sizeof(tocp_cfg6)/sizeof(tocp_cfg6[0])}
+    },
+    {
+        2, 
+        {30, tocp_cfg7, sizeof(tocp_cfg7)/sizeof(tocp_cfg7[0])}
+    },
+};
+
