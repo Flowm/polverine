@@ -70,8 +70,8 @@ The demos in this repository that communicate with the Bosch BME690 & BMV080 sen
 
 The SDKs source code and compiled libraries cannot be stored in this repository, but must be downloaded by the user from the Bosch website by accepting the licence agreement.
 
-- [BMV080 SDK r.11.0.0](https://www.bosch-sensortec.com/software-tools/double-opt-in-forms/sdk-v11-0-0.html)
-- [BME690 BSEC r.3.1.0](https://www.bosch-sensortec.com/software-tools/double-opt-in-forms/bsec-software-3-1-0-0-form-1.html)
+- [BMV080 SDK r.11.2.0](https://www.bosch-sensortec.com/software-tools/double-opt-in-forms/sdk-v11-2.html)
+- [BME690 BSEC r.3.2.1](https://www.bosch-sensortec.com/software-tools/double-opt-in-forms/bsec-software-3-2-1-0-form.html)
 
 Each project that uses the Bosch SDKs will contain a README file with instruction for copying needed files from Bosch file tree into the project source tree.
 
