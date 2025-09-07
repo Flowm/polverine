@@ -13,3 +13,6 @@ include/bsec_datatypes.h
 include/bsec_interface.h
 src/bsec_integration.c
 src/bsec_integration.h
+
+# Credentials file
+credentials.ini
