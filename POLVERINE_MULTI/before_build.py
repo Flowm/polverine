@@ -19,11 +19,11 @@ def check_deps(prj_dir:str):
         {
             'name':'BMV080 SDK',
             'files':[
-                '../deps/bosch-sensortec/BMV080-SDK/api/lib/xtensa_esp32s3/xtensa_esp32s3_elf_gcc/release/lib_bmv080.a',
-                '../deps/bosch-sensortec/BMV080-SDK/api/lib/xtensa_esp32s3/xtensa_esp32s3_elf_gcc/release/lib_postProcessor.a',
-                '../deps/bosch-sensortec/BMV080-SDK/api/inc/bmv080.h',
-                '../deps/bosch-sensortec/BMV080-SDK/api/inc/bmv080_defs.h',
-                '../deps/bosch-sensortec/BMV080-SDK/api_examples/_common/inc/bmv080_example.h'
+                'deps/bosch-sensortec/BMV080-SDK/api/lib/xtensa_esp32s3/xtensa_esp32s3_elf_gcc/release/lib_bmv080.a',
+                'deps/bosch-sensortec/BMV080-SDK/api/lib/xtensa_esp32s3/xtensa_esp32s3_elf_gcc/release/lib_postProcessor.a',
+                'deps/bosch-sensortec/BMV080-SDK/api/inc/bmv080.h',
+                'deps/bosch-sensortec/BMV080-SDK/api/inc/bmv080_defs.h',
+                'deps/bosch-sensortec/BMV080-SDK/api_examples/_common/inc/bmv080_example.h'
                 ],
 
             'wheretoget':'https://www.bosch-sensortec.com/software-tools/double-opt-in-forms/sdk-v11-0-0.html'
@@ -31,11 +31,11 @@ def check_deps(prj_dir:str):
         {
             'name':'BSEC3 Library',
             'files': [
-                '../deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/bin/esp/esp32_s3/libalgobsec.a',
-                '../deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/inc/bsec_datatypes.h',
-                '../deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/inc/bsec_interface.h',
-                '../deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/config/bme690/bme690_iaq_33v_3s_4d/bsec_iaq.h',
-                '../deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/config/bme690/bme690_iaq_33v_3s_4d/bsec_iaq.c',
+                'deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/bin/esp/esp32_s3/libalgobsec.a',
+                'deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/inc/bsec_datatypes.h',
+                'deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/inc/bsec_interface.h',
+                'deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/config/bme690/bme690_iaq_33v_3s_4d/bsec_iaq.h',
+                'deps/bosch-sensortec/bsec_library_v3.x/algo/bsec_IAQ/config/bme690/bme690_iaq_33v_3s_4d/bsec_iaq.c',
                 ],
             'wheretoget':'https://www.bosch-sensortec.com/software-tools/double-opt-in-forms/bsec-software-3-1-0-0-form-1.html'
         },
@@ -69,4 +69,3 @@ before_build(None, None, env)
 
 # Register the function to be called before the build process
 #env.AddPreAction("build", before_build)
-
