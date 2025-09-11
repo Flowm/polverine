@@ -1,7 +1,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <stdio.h>
-#include "peripherals.h"
+#include "led_control.h"
 #include "bmv080.h"
 #include "bmv080_io.h"
 #include "mqtt_client.h"
@@ -21,8 +21,7 @@ uint32_t get_tick_ms(void);
 
 void bmv080_data_ready(bmv080_output_t bmv080_output, void* callback_parameters)
 {
-//  gpio_set_level(B_LED_PIN, 1);
-//  gpio_hold_en(B_LED_PIN);
+//  led_set_blue(LED_ON);
 
   // Create data structure from BMV080 output
   bmv080_data_t sensor_data = {
@@ -47,8 +46,7 @@ void bmv080_data_ready(bmv080_output_t bmv080_output, void* callback_parameters)
           (bmv080_output.is_outside_measurement_range ? "YES" : "NO"));
   
   flBMV080Published = true;
-//  gpio_set_level(B_LED_PIN, 0);
-//  gpio_hold_en(B_LED_PIN);
+//  led_set_blue(LED_OFF);
 }
 
 uint32_t get_tick_ms(void)
@@ -97,15 +95,10 @@ void bmv080_task(void *pvParameter)
   if (bmv080_current_status != E_BMV080_OK)
   {
     printf("Resetting BMV080 sensor unit failed with BMV080 status %d\r\n", (int)bmv080_current_status);
-    gpio_set_level(R_LED_PIN, 1);
-    gpio_hold_en(R_LED_PIN);
+    led_set(LED_RED, LED_ON);
     while (1);
   }
-  gpio_set_level(G_LED_PIN, 1);
-  gpio_hold_en(G_LED_PIN);
-  bmv080_delay(1);
-  gpio_set_level(G_LED_PIN, 0);
-  gpio_hold_en(G_LED_PIN);
+  led_flash(LED_GREEN);
 
    /*********************************************************************************************************************
     * Running a particle measurement in duty cycling mode
@@ -139,15 +132,10 @@ void bmv080_task(void *pvParameter)
   if(bmv080_current_status != E_BMV080_OK)
   {
     printf("Starting BMV080 failed with status %d\r\n", (int)bmv080_current_status);
-    gpio_set_level(R_LED_PIN, 1);
-    gpio_hold_en(R_LED_PIN);
+    led_set(LED_RED, LED_ON);
     while (1);
   }
-  gpio_set_level(G_LED_PIN, 1);
-  gpio_hold_en(G_LED_PIN);
-  bmv080_delay(1);
-  gpio_set_level(G_LED_PIN, 0);
-  gpio_hold_en(G_LED_PIN);
+  led_flash(LED_GREEN);
 
 
 
@@ -159,8 +147,8 @@ void bmv080_task(void *pvParameter)
     if(bmv080_current_status != E_BMV080_OK)
     {
       printf("Reading BMV080 failed with status %d\r\n", (int)bmv080_current_status);
-      gpio_set_level(R_LED_PIN, 1);
-      gpio_set_level(R_LED_PIN, 0);
+      led_set(LED_RED, LED_ON);
+      led_set(LED_RED, LED_OFF);
     }
   }
 }

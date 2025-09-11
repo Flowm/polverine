@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "esp_mac.h"
-#include "peripherals.h"
+
 #include "mqtt_client.h"
 #include "esp_log.h"
 #include "nvs_flash.h"

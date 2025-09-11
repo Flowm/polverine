@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "led_control.h"
 #include <string.h>
 #include "bsec_iaq.h"
 #include "bsec_integration.h"
@@ -15,7 +16,6 @@
 #include "freertos/task.h"
 #include "driver/i2c_master.h"
 #include "driver/gpio.h"
-#include "peripherals.h"
 #include "polverine_cfg.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
@@ -301,8 +301,7 @@ static void output_ready(outputs_t *output)
         ESP_LOGI("BME690", "Raw gas: %.2f ohms, Gas percentage: %.2f%%, Static IAQ: %.2f", 
                 output->raw_gas, data_to_publish.gas_percentage, data_to_publish.static_iaq);
     }
-  //gpio_set_level(G_LED_PIN, 0);
-  //gpio_hold_en(G_LED_PIN);
+  //led_set(LED_GREEN, LED_OFF);
   //gpio_deep_sleep_hold_en();
 
 /*

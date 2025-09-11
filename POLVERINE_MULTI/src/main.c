@@ -30,7 +30,7 @@
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "mqtt_client.h"
-#include "peripherals.h"
+#include "led_control.h"
 #include "esp_pm.h"
 #include "config.h"
 #include "wifi_provisioning.h"
@@ -68,23 +68,7 @@ static const char *TAG = "power_management";
     #endif
 }
 
-void gpio_init(void)
-{
-    esp_rom_gpio_pad_select_gpio(R_LED_PIN);
-    gpio_set_direction(R_LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(R_LED_PIN, 0);
-    gpio_hold_en(R_LED_PIN);
 
-    esp_rom_gpio_pad_select_gpio(G_LED_PIN);
-    gpio_set_direction(G_LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(G_LED_PIN, 0);
-    gpio_hold_en(G_LED_PIN);
-
-    esp_rom_gpio_pad_select_gpio(B_LED_PIN);
-    gpio_set_direction(B_LED_PIN, GPIO_MODE_OUTPUT);
-    gpio_set_level(B_LED_PIN, 0);
-    gpio_hold_en(B_LED_PIN);
-}
 
 
 void app_main(void)
@@ -96,8 +80,7 @@ void app_main(void)
     snprintf(shortId, sizeof(shortId), "%02X%02X%02X", mac[3], mac[4], mac[5]);
     mqtt_default_init(shortId);
 
-    // led_control_init(); // LED functionality removed
-    gpio_init();
+    led_init();
     pm_init();
 
     ESP_LOGI(TAG, "[APP] Startup..");
@@ -190,7 +173,11 @@ void app_main(void)
     usb_app_start();
     ESP_LOGI(TAG, "USB application started");
 
-    // LED test removed
+    // Example LED usage:
+    // led_flash(LED_GREEN);                    // Quick success indication
+    // led_set(LED_RED, LED_ON);                // Turn on red LED
+    // led_set_rgb(LED_ON, LED_OFF, LED_ON);    // Custom RGB combination
+    // led_all_off();                           // Turn off all LEDs
 
     ESP_LOGI(TAG, "Startup complete!");
 }
