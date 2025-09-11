@@ -17,7 +17,7 @@
 #include "common_private.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
-#include "cJSON.h"
+
 #include "esp_netif.h"
 #include "lwip/ip4_addr.h"
 #include "esp_mac.h"
@@ -46,63 +46,12 @@ esp_err_t set_static_ip(void);
 void dhcp_retry_timer_callback(TimerHandle_t xTimer);
 esp_err_t retry_dhcp(void);
 
-cJSON *wifi = 0;
+static polverine_wifi_config_t current_wifi_config = {0};
+static bool wifi_config_loaded = false;
 
-void wifi_store_read(void)
-{
-    polverine_wifi_config_t config;
-    
-    if (config_load_wifi(&config)) {
-        // Create JSON from loaded config
-        if(wifi) {
-            cJSON_Delete(wifi);
-            wifi = 0;
-        }
-        
-        wifi = cJSON_CreateObject();
-        cJSON_AddStringToObject(wifi, "ssid", config.ssid);
-        cJSON_AddStringToObject(wifi, "pwd", config.password);
-        
-        ESP_LOGI(TAG, "WiFi configuration read: SSID=%s", config.ssid);
-    } else {
-        ESP_LOGE(TAG, "Failed to load WiFi configuration");
-        // Create a default JSON object to prevent crashes
-        if(wifi) {
-            cJSON_Delete(wifi);
-            wifi = 0;
-        }
-        wifi = cJSON_CreateObject();
-        cJSON_AddStringToObject(wifi, "ssid", "");
-        cJSON_AddStringToObject(wifi, "pwd", "");
-    }
-}
 
-void wifi_store_write(const char *buffer)
-{
-    cJSON *json = cJSON_Parse(buffer);
-    
-    if(json) {
-        polverine_wifi_config_t config = {0};
-        
-        cJSON *ssid = cJSON_GetObjectItemCaseSensitive(json, "ssid");
-        cJSON *pwd = cJSON_GetObjectItemCaseSensitive(json, "pwd");
-        
-        if (ssid && cJSON_IsString(ssid)) {
-            strncpy(config.ssid, ssid->valuestring, sizeof(config.ssid) - 1);
-        }
-        if (pwd && cJSON_IsString(pwd)) {
-            strncpy(config.password, pwd->valuestring, sizeof(config.password) - 1);
-        }
-        
-        if (config_save_wifi(&config)) {
-            ESP_LOGI(TAG, "WiFi configuration saved");
-        } else {
-            ESP_LOGE(TAG, "Failed to save WiFi configuration");
-        }
-        
-        cJSON_Delete(json);
-    }
-}
+
+
 
 static int s_retry_num = 0;
 
@@ -470,25 +419,22 @@ esp_err_t wifi_connect(void)
 {
     ESP_LOGI(TAG, "Starting wifi_connect...");
 
-    ESP_LOGI(TAG, "Reading WiFi configuration from storage...");
-//    wifi_store_write(DEFAULT_POLVERINE_WIFI);
-    wifi_store_read();
-    
-    // Check if wifi JSON object was created successfully
-    if (!wifi) {
-        ESP_LOGE(TAG, "Failed to create WiFi configuration JSON object");
+    ESP_LOGI(TAG, "Loading WiFi configuration from storage...");
+    if (config_load_wifi(&current_wifi_config)) {
+        wifi_config_loaded = true;
+        ESP_LOGI(TAG, "WiFi configuration loaded: SSID=%s", current_wifi_config.ssid);
+    } else {
+        ESP_LOGE(TAG, "Failed to load WiFi configuration");
+        wifi_config_loaded = false;
         return ESP_FAIL;
     }
     
-    cJSON *ssid_item = cJSON_GetObjectItemCaseSensitive(wifi, "ssid");
-    cJSON *pwd_item = cJSON_GetObjectItemCaseSensitive(wifi, "pwd");
-    
-    if (!ssid_item || !pwd_item) {
-        ESP_LOGE(TAG, "WiFi configuration JSON missing required fields");
+    if (!wifi_config_loaded || strlen(current_wifi_config.ssid) == 0) {
+        ESP_LOGE(TAG, "No valid WiFi configuration");
         return ESP_FAIL;
     }
     
-    ESP_LOGI(TAG, "WiFi configuration read: SSID=%s", ssid_item->valuestring);
+    ESP_LOGI(TAG, "WiFi configuration loaded: SSID=%s", current_wifi_config.ssid);
 
     ESP_LOGI(TAG, "Starting WiFi...");
     wifi_start();
@@ -506,8 +452,8 @@ esp_err_t wifi_connect(void)
     };
 
     ESP_LOGI(TAG, "Copying SSID and password from configuration...");
-    strncpy((char *)&wifi_config.sta.ssid, ssid_item->valuestring, sizeof(wifi_config.sta.ssid));
-    strncpy((char *)&wifi_config.sta.password, pwd_item->valuestring, sizeof(wifi_config.sta.password));
+    strncpy((char *)wifi_config.sta.ssid, current_wifi_config.ssid, sizeof(wifi_config.sta.ssid));
+    strncpy((char *)wifi_config.sta.password, current_wifi_config.password, sizeof(wifi_config.sta.password));
     ESP_LOGI(TAG, "Configuration prepared, connecting to SSID: %s", wifi_config.sta.ssid);
 
     ESP_LOGI(TAG, "Calling wifi_sta_do_connect...");

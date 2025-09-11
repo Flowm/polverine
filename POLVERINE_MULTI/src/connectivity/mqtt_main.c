@@ -50,7 +50,8 @@ const char *TEMPLATE_HA_AVAILABILITY = "polverine/%s/availability";
 
 // Configuration loaded from NVS
 
-cJSON *mqtt = 0;
+static polverine_mqtt_config_t current_mqtt_config = {0};
+static bool mqtt_config_loaded = false;
 
 extern char shortId[7];
 static char device_name[64];
@@ -68,29 +69,9 @@ void mqtt_default_init(const char *id)
     snprintf(system_state_topic, sizeof(system_state_topic), TEMPLATE_HA_STATE_SYSTEM, id);
 }
 
-void mqtt_store_read(void)
-{
-    polverine_mqtt_config_t config;
-    
-    if (config_load_mqtt(&config, shortId)) {
-        // Create JSON from loaded config
-        if(mqtt) {
-            cJSON_Delete(mqtt);
-            mqtt = 0;
-        }
-        
-        mqtt = cJSON_CreateObject();
-        cJSON_AddStringToObject(mqtt, "uri", config.uri);
-        cJSON_AddStringToObject(mqtt, "user", config.username);
-        cJSON_AddStringToObject(mqtt, "pwd", config.password);
-        cJSON_AddStringToObject(mqtt, "clientid", config.client_id);
-        
-        ESP_LOGI(TAG, "MQTT configuration loaded: URI=%s, ClientID=%s", 
-                 config.uri, config.client_id);
-    } else {
-        ESP_LOGE(TAG, "Failed to load MQTT configuration");
-    }
-}
+
+
+
 
 
 
@@ -548,20 +529,15 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         vTaskDelay(pdMS_TO_TICKS(2000));
         
         // Get MQTT configuration for detailed logging
-        cJSON *uri_item = cJSON_GetObjectItemCaseSensitive(mqtt, "uri");
-        cJSON *user_item = cJSON_GetObjectItemCaseSensitive(mqtt, "user");
-        cJSON *pwd_item = cJSON_GetObjectItemCaseSensitive(mqtt, "pwd");
-        cJSON *clientid_item = cJSON_GetObjectItemCaseSensitive(mqtt, "clientid");
-        
-        if (uri_item && user_item && pwd_item && clientid_item) {
+        if (mqtt_config_loaded) {
             ESP_LOGI(TAG, "Attempting to reconnect to MQTT broker...");
-            ESP_LOGI(TAG, "  Broker URI: %s", uri_item->valuestring);
-            ESP_LOGI(TAG, "  Username: %s", user_item->valuestring);
-            ESP_LOGI(TAG, "  Password: %s", pwd_item->valuestring);
-            ESP_LOGI(TAG, "  Client ID: %s", clientid_item->valuestring);
+            ESP_LOGI(TAG, "  Broker URI: %s", current_mqtt_config.uri);
+            ESP_LOGI(TAG, "  Username: %s", current_mqtt_config.username);
+            ESP_LOGI(TAG, "  Password: %s", current_mqtt_config.password);
+            ESP_LOGI(TAG, "  Client ID: %s", current_mqtt_config.client_id);
             
             // Parse URI to show host and port separately
-            const char *uri = uri_item->valuestring;
+            const char *uri = current_mqtt_config.uri;
             if (strncmp(uri, "mqtt://", 7) == 0) {
                 const char *host_port = uri + 7;
                 char *colon = strchr(host_port, ':');
@@ -636,14 +612,27 @@ void mqtt_app_start(void)
     // Initialize sensor data broker
     sensor_broker_init();
     
-    mqtt_store_read();
+    if (config_load_mqtt(&current_mqtt_config, shortId)) {
+        mqtt_config_loaded = true;
+        ESP_LOGI(TAG, "MQTT configuration loaded: URI=%s, ClientID=%s", 
+                 current_mqtt_config.uri, current_mqtt_config.client_id);
+    } else {
+        ESP_LOGE(TAG, "Failed to load MQTT configuration");
+        mqtt_config_loaded = false;
+        return;
+    }
     
-    // Configure MQTT client
+    if (!mqtt_config_loaded) {
+        ESP_LOGE(TAG, "No MQTT configuration available");
+        return;
+    }
+    
+    // Configure MQTT client directly from struct
     esp_mqtt_client_config_t mqtt_cfg = {0};
-    mqtt_cfg.broker.address.uri = cJSON_GetObjectItemCaseSensitive(mqtt, "uri")->valuestring;
-    mqtt_cfg.credentials.username = cJSON_GetObjectItemCaseSensitive(mqtt, "user")->valuestring;
-    mqtt_cfg.credentials.authentication.password = cJSON_GetObjectItemCaseSensitive(mqtt, "pwd")->valuestring;
-    mqtt_cfg.credentials.client_id = cJSON_GetObjectItemCaseSensitive(mqtt, "clientid")->valuestring;
+    mqtt_cfg.broker.address.uri = current_mqtt_config.uri;
+    mqtt_cfg.credentials.username = current_mqtt_config.username;
+    mqtt_cfg.credentials.authentication.password = current_mqtt_config.password;
+    mqtt_cfg.credentials.client_id = current_mqtt_config.client_id;
     
     // Set last will message for availability
     mqtt_cfg.session.last_will.topic = availability_topic;
