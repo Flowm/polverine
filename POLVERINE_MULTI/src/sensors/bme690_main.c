@@ -16,13 +16,14 @@
 #include "driver/i2c_master.h"
 #include "driver/gpio.h"
 #include "peripherals.h"
-#include "sensorbuffer.h"
 #include "polverine_cfg.h"
 #include "esp_log.h"
 #include "nvs_flash.h"
 #include "nvs.h"
 #include "esp_system.h"
 #include "bme690_io.h"
+#include "sensor_data_broker.h"
+#include "sensor_buffer.h"
 
 #define SID_BME69X                      UINT16_C(0x093)
 #define SID_BME69X_X8                   UINT16_C(0x057)
@@ -39,7 +40,6 @@ extern uint8_t *bsecInstance[NUM_OF_SENS];
 
 
 
-extern void bme690_publish(const char *buffer);
 extern char shortId[7];
 
 /* Callback methods */
@@ -54,27 +54,15 @@ static void state_save(const uint8_t *state_buffer, uint32_t length);
 
 static void output_ready(outputs_t *output);
 
-
-
-sensorbuffer aveT;
-sensorbuffer aveP;
-sensorbuffer aveH;
-sensorbuffer aveIAQ;
-sensorbuffer aveACC;
-sensorbuffer aveCO2;
-sensorbuffer aveVOC;
+static bme690_sensor_buffer_t sensor_buffer;
+static uint32_t startup_time = 0;
+static bool first_output = true;
 
 void bme690_task(void *)
 {
     bme690_i2c_init();
 
-    sb_init(&aveT,60);
-    sb_init(&aveP,60);
-    sb_init(&aveH,60);
-    sb_init(&aveIAQ,60);
-    sb_init(&aveACC,60);
-    sb_init(&aveCO2,60);
-    sb_init(&aveVOC,60);
+    bme690_buffer_init(&sensor_buffer);
 
     bsec_version_t version;
     return_values_init ret = {BME69X_OK, BSEC_OK};
@@ -223,108 +211,96 @@ extern float extTempOffset;
 
 static void output_ready(outputs_t *output)
 {
-static char* buffer[600];
-static uint8_t last_iaq_accuracy = 0;
-static uint32_t startup_time = 0;
-static bool first_output = true;
+    static uint8_t last_iaq_accuracy = 0;
+    uint32_t current_time = get_timestamp_ms();
 
-  if (first_output) {
-      startup_time = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
-      first_output = false;
-      ESP_LOGI("BME690", "First BSEC output received - starting calibration period");
-  }
-
-  //gpio_set_level(G_LED_PIN, 1);
-  //gpio_hold_en(G_LED_PIN);
-  //gpio_deep_sleep_hold_en();
-
-  sb_add(&aveT,output->compensated_temperature);
-  sb_add(&aveP,output->raw_pressure);
-  sb_add(&aveH,output->compensated_humidity);
-  sb_add(&aveIAQ,output->iaq);
-  sb_add(&aveACC,output->iaq_accuracy);
-  sb_add(&aveCO2,output->co2_equivalent);
-  sb_add(&aveVOC,output->breath_voc_equivalent);
-  
-  // Log detailed status information
-  uint32_t uptime = (xTaskGetTickCount() * portTICK_PERIOD_MS / 1000) - startup_time;
-  
-  // Log accuracy status with meaning
-  const char* accuracy_desc = "Unknown";
-  switch(output->iaq_accuracy) {
-      case 0: accuracy_desc = "Stabilizing"; break;
-      case 1: accuracy_desc = "Low"; break;
-      case 2: accuracy_desc = "Medium"; break;
-      case 3: accuracy_desc = "High"; break;
-  }
-  
-  // Log stabilization and run-in status
-  const char* stab_status = output->stabStatus ? "Stabilized" : "Stabilizing";
-  const char* runin_status = output->runInStatus ? "Complete" : "Running";
-  
-  ESP_LOGI("BME690", "Uptime: %lu s, Accuracy: %d (%s), Stabilization: %s, Run-in: %s", 
-           (unsigned long)uptime, output->iaq_accuracy, accuracy_desc, stab_status, runin_status);
-  
-  // Force save when IAQ accuracy improves
-  if (output->iaq_accuracy > last_iaq_accuracy) {
-      ESP_LOGI("BME690", "IAQ accuracy improved: %d -> %d", last_iaq_accuracy, output->iaq_accuracy);
-      last_iaq_accuracy = output->iaq_accuracy;
-      // Force a save when accuracy improves
-      if (latest_state_buffer != NULL && latest_state_length > 0) {
-          bme690_force_state_save();
-      }
-  }
-
-{ // called 1 time every 3 ? (4.25) seconds, demultiplied to 1 data out every minute
-//    static int demult = 20;
-
-//    if(demult++ >= 20)
-
-    if (!PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080) {
-        snprintf((char * __restrict__)buffer,600,"{\"ID\":\"%s\",\"R\":%.2f,\"T\":%.2f,\"P\":%.2f,\"H\":%.2f,\"IAQ\":%.2f,\"ACC\":%.2f,\"CO2\":%.2f,\"VOC\":%.2f,"
-                "\"SIAQ\":%.2f,\"GASP\":%.2f,\"STAB\":%.0f,\"RUN\":%.0f,"
-                "\"mtof\":%.2f, \"bougb8\":%d, \"ltdt\":%d}\n",
-                shortId,
-                (float)(output->timestamp/1000000)/1000., output->compensated_temperature, output->raw_pressure, output->compensated_humidity,
-                (float)output->iaq, (float)output->iaq_accuracy, output->co2_equivalent, output->breath_voc_equivalent,
-                output->static_iaq, output->gas_percentage, output->stabStatus, output->runInStatus,
-                extTempOffset, PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080, PLVN_CFG_BSEC_LOOP_DELAY_TIME_MS);
-
-        bme690_publish((const char *)buffer);
-        
-        // Log the sensor values
-        ESP_LOGI("BME690", "Temperature: %.2f°C, Pressure: %.2f Pa, Humidity: %.2f%%", 
-                output->compensated_temperature, output->raw_pressure, output->compensated_humidity);
-        ESP_LOGI("BME690", "IAQ: %.2f (acc: %d), CO2: %.2f ppm, VOC: %.2f ppm", 
-                (float)output->iaq, output->iaq_accuracy, output->co2_equivalent, output->breath_voc_equivalent);
-        ESP_LOGI("BME690", "Raw gas: %.2f ohms, Gas percentage: %.2f%%, Static IAQ: %.2f", 
-                output->raw_gas, output->gas_percentage, output->static_iaq);
-    } 
-    else if(PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080 && flBMV080Published)
-    {
-        snprintf((char * __restrict__)buffer,600,"{\"ID\":\"%s\",\"R\":%.2f,\"T\":%.2f,\"P\":%.2f,\"H\":%.2f,\"IAQ\":%.2f,\"ACC\":%.2f,\"CO2\":%.2f,\"VOC\":%.2f,"
-                "\"SIAQ\":%.2f,\"GASP\":%.2f,\"STAB\":%.0f,\"RUN\":%.0f,"
-                "\"mtof\":%.2f, \"bougb8\":%d, \"ltdt\":%d}\n",
-                shortId,
-                (float)(output->timestamp/1000000)/1000., sb_average(&aveT), sb_average(&aveP), sb_average(&aveH),
-                sb_average(&aveIAQ), sb_average(&aveACC), sb_average(&aveCO2), sb_average(&aveVOC),
-                output->static_iaq, output->gas_percentage, output->stabStatus, output->runInStatus,
-                extTempOffset, PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080, PLVN_CFG_BSEC_LOOP_DELAY_TIME_MS);
-
-        bme690_publish((const char *)buffer);
-        
-        // Log the averaged sensor values
-        ESP_LOGI("BME690", "Averaged - Temp: %.2f°C, Press: %.2f Pa, Hum: %.2f%%", 
-                sb_average(&aveT), sb_average(&aveP), sb_average(&aveH));
-        ESP_LOGI("BME690", "Averaged - IAQ: %.2f (acc: %.0f), CO2: %.2f ppm, VOC: %.2f ppm", 
-                sb_average(&aveIAQ), sb_average(&aveACC), sb_average(&aveCO2), sb_average(&aveVOC));
-        ESP_LOGI("BME690", "Raw gas: %.2f ohms, Gas percentage: %.2f%%, Static IAQ: %.2f", 
-                output->raw_gas, output->gas_percentage, output->static_iaq);
-                
-        flBMV080Published = false;
-        //demult = 0;
+    if (first_output) {
+        startup_time = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
+        first_output = false;
+        ESP_LOGI("BME690", "First BSEC output received - starting calibration period");
     }
-}
+
+    // Create data structure from BSEC output
+    bme690_data_t sensor_data = {
+        .temperature = output->compensated_temperature,
+        .pressure = output->raw_pressure,
+        .humidity = output->compensated_humidity,
+        .iaq = output->iaq,
+        .iaq_accuracy = output->iaq_accuracy,
+        .co2_equivalent = output->co2_equivalent,
+        .breath_voc_equivalent = output->breath_voc_equivalent,
+        .static_iaq = output->static_iaq,
+        .gas_percentage = output->gas_percentage,
+        .stabilization_status = output->stabStatus,
+        .run_in_status = output->runInStatus,
+        .timestamp = current_time
+    };
+
+    // Add to buffer (replaces all the sb_add calls)
+    bme690_buffer_add(&sensor_buffer, &sensor_data);
+  
+    // Log detailed status information
+    uint32_t uptime = (xTaskGetTickCount() * portTICK_PERIOD_MS / 1000) - startup_time;
+    
+    // Log accuracy status with meaning
+    const char* accuracy_desc = "Unknown";
+    switch(output->iaq_accuracy) {
+        case 0: accuracy_desc = "Stabilizing"; break;
+        case 1: accuracy_desc = "Low"; break;
+        case 2: accuracy_desc = "Medium"; break;
+        case 3: accuracy_desc = "High"; break;
+    }
+    
+    // Log stabilization and run-in status
+    const char* stab_status = output->stabStatus ? "Stabilized" : "Stabilizing";
+    const char* runin_status = output->runInStatus ? "Complete" : "Running";
+    
+    ESP_LOGI("BME690", "Uptime: %lu s, Accuracy: %d (%s), Stabilization: %s, Run-in: %s", 
+             (unsigned long)uptime, output->iaq_accuracy, accuracy_desc, stab_status, runin_status);
+    
+    // Force save when IAQ accuracy improves
+    if (output->iaq_accuracy > last_iaq_accuracy) {
+        ESP_LOGI("BME690", "IAQ accuracy improved: %d -> %d", last_iaq_accuracy, output->iaq_accuracy);
+        last_iaq_accuracy = output->iaq_accuracy;
+        // Force a save when accuracy improves
+        if (latest_state_buffer != NULL && latest_state_length > 0) {
+            bme690_force_state_save();
+        }
+    }
+
+    // Existing conditional publishing logic - simplified
+    bool should_publish = false;
+    bool use_averaged = false;
+    bme690_data_t data_to_publish;
+    
+    if (!PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080) {
+        // Immediate publishing with raw data (matches current behavior)
+        data_to_publish = sensor_data;
+        use_averaged = false;
+        should_publish = true;
+    } 
+    else if (PVLN_CFG_BSEC_OUTPUT_UPDATE_GATED_BY_BMV080 && flBMV080Published) {
+        // Gated publishing with averaged data (matches current behavior)
+        data_to_publish = bme690_buffer_get_averaged(&sensor_buffer);
+        use_averaged = true;
+        should_publish = true;
+        flBMV080Published = false;
+    }
+    
+    if (should_publish) {
+        // Publish through data broker instead of direct JSON formatting
+        sensor_broker_publish_bme690(&data_to_publish, use_averaged);
+        
+        // Log the published values (matches current logging)
+        const char* prefix = use_averaged ? "Averaged - " : "";
+        ESP_LOGI("BME690", "%sTemp: %.2f°C, Press: %.2f Pa, Hum: %.2f%%", 
+                prefix, data_to_publish.temperature, data_to_publish.pressure, data_to_publish.humidity);
+        ESP_LOGI("BME690", "%sIAQ: %.2f (acc: %d), CO2: %.2f ppm, VOC: %.2f ppm", 
+                prefix, data_to_publish.iaq, data_to_publish.iaq_accuracy, 
+                data_to_publish.co2_equivalent, data_to_publish.breath_voc_equivalent);
+        ESP_LOGI("BME690", "Raw gas: %.2f ohms, Gas percentage: %.2f%%, Static IAQ: %.2f", 
+                output->raw_gas, data_to_publish.gas_percentage, data_to_publish.static_iaq);
+    }
   //gpio_set_level(G_LED_PIN, 0);
   //gpio_hold_en(G_LED_PIN);
   //gpio_deep_sleep_hold_en();

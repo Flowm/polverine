@@ -11,6 +11,7 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "driver/temperature_sensor.h"
+#include "sensor_data_broker.h"
 
 const char *TAG = "mqtt_polverine_ha";
 
@@ -448,92 +449,60 @@ static void send_ha_discovery()
     ESP_LOGI(TAG, "Home Assistant discovery messages sent");
 }
 
-// Publish BME690 data with Home Assistant format
-void bme690_publish(const char *buffer)
+// BME690 data callback handler
+static void mqtt_bme690_data_handler(const bme690_data_t *data, bool is_averaged)
 {
-    if(!isConnected) return;
+    if (!isConnected || data == NULL) return;
     
-    // Parse the existing JSON
-    cJSON *json = cJSON_Parse(buffer);
-    if(!json) return;
-    
-    // Create new JSON for Home Assistant
+    // Create Home Assistant JSON directly from data structure
     cJSON *ha_json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(ha_json, "temperature", data->temperature);
+    cJSON_AddNumberToObject(ha_json, "humidity", data->humidity);
+    cJSON_AddNumberToObject(ha_json, "pressure", data->pressure);
+    cJSON_AddNumberToObject(ha_json, "iaq", data->iaq);
+    cJSON_AddNumberToObject(ha_json, "co2", data->co2_equivalent);
+    cJSON_AddNumberToObject(ha_json, "voc", data->breath_voc_equivalent);
+    cJSON_AddNumberToObject(ha_json, "iaq_accuracy", data->iaq_accuracy);
+    cJSON_AddNumberToObject(ha_json, "static_iaq", data->static_iaq);
+    cJSON_AddNumberToObject(ha_json, "gas_percentage", data->gas_percentage);
+    cJSON_AddStringToObject(ha_json, "stabilization_status", data->stabilization_status ? "true" : "false");
+    cJSON_AddStringToObject(ha_json, "run_in_status", data->run_in_status ? "true" : "false");
     
-    // Get values from original JSON
-    cJSON *temp = cJSON_GetObjectItemCaseSensitive(json, "T");
-    cJSON *hum = cJSON_GetObjectItemCaseSensitive(json, "H");
-    cJSON *press = cJSON_GetObjectItemCaseSensitive(json, "P");
-    cJSON *iaq = cJSON_GetObjectItemCaseSensitive(json, "IAQ");
-    cJSON *co2 = cJSON_GetObjectItemCaseSensitive(json, "CO2");
-    cJSON *voc = cJSON_GetObjectItemCaseSensitive(json, "VOC");
-    cJSON *acc = cJSON_GetObjectItemCaseSensitive(json, "ACC");
-    cJSON *siaq = cJSON_GetObjectItemCaseSensitive(json, "SIAQ");
-    cJSON *gasp = cJSON_GetObjectItemCaseSensitive(json, "GASP");
-    cJSON *stab = cJSON_GetObjectItemCaseSensitive(json, "STAB");
-    cJSON *run = cJSON_GetObjectItemCaseSensitive(json, "RUN");
-    cJSON *mtof = cJSON_GetObjectItemCaseSensitive(json, "mtof");
+    // Add metadata
+    cJSON_AddStringToObject(ha_json, "data_type", is_averaged ? "averaged" : "raw");
+    cJSON_AddNumberToObject(ha_json, "timestamp", data->timestamp);
     
-    // Add to HA JSON
-    if(temp) cJSON_AddNumberToObject(ha_json, "temperature", temp->valuedouble);
-    if(hum) cJSON_AddNumberToObject(ha_json, "humidity", hum->valuedouble);
-    if(press) cJSON_AddNumberToObject(ha_json, "pressure", press->valuedouble);
-    if(iaq) cJSON_AddNumberToObject(ha_json, "iaq", iaq->valuedouble);
-    if(co2) cJSON_AddNumberToObject(ha_json, "co2", co2->valuedouble);
-    if(voc) cJSON_AddNumberToObject(ha_json, "voc", voc->valuedouble);
-    if(acc) cJSON_AddNumberToObject(ha_json, "iaq_accuracy", acc->valuedouble);
-    if(siaq) cJSON_AddNumberToObject(ha_json, "static_iaq", siaq->valuedouble);
-    if(gasp) cJSON_AddNumberToObject(ha_json, "gas_percentage", gasp->valuedouble);
-    if(stab) cJSON_AddStringToObject(ha_json, "stabilization_status", stab->valuedouble > 0.5 ? "true" : "false");
-    if(run) cJSON_AddStringToObject(ha_json, "run_in_status", run->valuedouble > 0.5 ? "true" : "false");
-    if(mtof) cJSON_AddNumberToObject(ha_json, "mtof", mtof->valuedouble);
+    char *payload = cJSON_PrintUnformatted(ha_json);
+    esp_mqtt_client_publish(client, bme690_state_topic, payload, 0, 1, 0);
     
-    char *ha_payload = cJSON_PrintUnformatted(ha_json);
-    esp_mqtt_client_publish(client, bme690_state_topic, ha_payload, 0, 1, 0);  // QoS 1 for reliability
-    
-    cJSON_Delete(json);
     cJSON_Delete(ha_json);
-    free(ha_payload);
+    free(payload);
+    
+    ESP_LOGI(TAG, "Published %s BME690 data", is_averaged ? "averaged" : "raw");
 }
 
-// Publish BMV080 data with Home Assistant format
-void bmv080_publish(const char *buffer)
+// BMV080 data callback handler
+static void mqtt_bmv080_data_handler(const bmv080_data_t *data)
 {
-    if(!isConnected) return;
+    if (!isConnected || data == NULL) return;
     
-    // Parse the existing JSON
-    cJSON *json = cJSON_Parse(buffer);
-    if(!json) return;
-    
-    // Create new JSON for Home Assistant
+    // Create Home Assistant JSON directly from data structure
     cJSON *ha_json = cJSON_CreateObject();
+    cJSON_AddNumberToObject(ha_json, "pm10", data->pm10);
+    cJSON_AddNumberToObject(ha_json, "pm25", data->pm25);
+    cJSON_AddNumberToObject(ha_json, "pm1", data->pm1);
+    cJSON_AddStringToObject(ha_json, "obstructed", data->is_obstructed ? "true" : "false");
+    cJSON_AddStringToObject(ha_json, "out_of_range", data->is_outside_range ? "true" : "false");
+    cJSON_AddNumberToObject(ha_json, "runtime", data->runtime);
+    cJSON_AddNumberToObject(ha_json, "timestamp", data->timestamp);
     
-    // Get values from original JSON
-    cJSON *pm10 = cJSON_GetObjectItemCaseSensitive(json, "PM10");
-    cJSON *pm25 = cJSON_GetObjectItemCaseSensitive(json, "PM25");
-    cJSON *pm1 = cJSON_GetObjectItemCaseSensitive(json, "PM1");
-    cJSON *obst = cJSON_GetObjectItemCaseSensitive(json, "obst");
-    cJSON *omr = cJSON_GetObjectItemCaseSensitive(json, "omr");
+    char *payload = cJSON_PrintUnformatted(ha_json);
+    esp_mqtt_client_publish(client, bmv080_state_topic, payload, 0, 1, 0);
     
-    // Add to HA JSON
-    if(pm10) cJSON_AddNumberToObject(ha_json, "pm10", pm10->valuedouble);
-    if(pm25) cJSON_AddNumberToObject(ha_json, "pm25", pm25->valuedouble);
-    if(pm1) cJSON_AddNumberToObject(ha_json, "pm1", pm1->valuedouble);
-    
-    // Add boolean values for obstructed and out of range
-    if(obst && cJSON_IsString(obst)) {
-        cJSON_AddStringToObject(ha_json, "obstructed", strcmp(obst->valuestring, "yes") == 0 ? "true" : "false");
-    }
-    if(omr && cJSON_IsString(omr)) {
-        cJSON_AddStringToObject(ha_json, "out_of_range", strcmp(omr->valuestring, "yes") == 0 ? "true" : "false");
-    }
-    
-    char *ha_payload = cJSON_PrintUnformatted(ha_json);
-    esp_mqtt_client_publish(client, bmv080_state_topic, ha_payload, 0, 1, 0);  // QoS 1 for reliability
-    
-    cJSON_Delete(json);
     cJSON_Delete(ha_json);
-    free(ha_payload);
+    free(payload);
+    
+    ESP_LOGI(TAG, "Published BMV080 data");
 }
 
 // Forward declarations
@@ -705,6 +674,9 @@ void mqtt_app_start(void)
 {
     ESP_LOGI(TAG, "Starting Home Assistant MQTT application...");
     
+    // Initialize sensor data broker
+    sensor_broker_init();
+    
     mqtt_store_read();
     
     // Configure MQTT client
@@ -783,6 +755,11 @@ void mqtt_app_start(void)
     }
     
     ESP_LOGI(TAG, "MQTT client started successfully");
+    
+    // Register for sensor data callbacks
+    sensor_broker_register_bme690_callback(mqtt_bme690_data_handler);
+    sensor_broker_register_bmv080_callback(mqtt_bmv080_data_handler);
+    ESP_LOGI(TAG, "Sensor data callbacks registered");
     
     // Start system metrics reporting task
     mqtt_start_system_metrics_task();

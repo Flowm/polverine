@@ -6,32 +6,37 @@
 #include "bmv080_io.h"
 #include "mqtt_client.h"
 #include "esp_log.h"
+#include "sensor_data_broker.h"
 
 #include "polverine_cfg.h"
 
 spi_device_handle_t hspi;
 //extern bool isConnected;
 //extern esp_mqtt_client_handle_t client;
-extern void bmv080_publish(const char *buffer);
 extern char shortId[7];
 volatile bool flBMV080Published = false;
 
+// Forward declaration
+uint32_t get_tick_ms(void);
 
 void bmv080_data_ready(bmv080_output_t bmv080_output, void* callback_parameters)
 {
-static char buffer[256] = {0};
 //  gpio_set_level(B_LED_PIN, 1);
 //  gpio_hold_en(B_LED_PIN);
 
+  // Create data structure from BMV080 output
+  bmv080_data_t sensor_data = {
+      .pm10 = bmv080_output.pm10_mass_concentration,
+      .pm25 = bmv080_output.pm2_5_mass_concentration,
+      .pm1 = bmv080_output.pm1_mass_concentration,
+      .is_obstructed = bmv080_output.is_obstructed,
+      .is_outside_range = bmv080_output.is_outside_measurement_range,
+      .runtime = bmv080_output.runtime_in_sec,
+      .timestamp = get_tick_ms()
+  };
 
-  snprintf(buffer,256,"{\"ID\":\"%s\",\"R\":%.1f,\"PM10\":%.0f,\"PM25\":%.0f,\"PM1\":%.0f,\"obst\":\"%s\",\"omr\":\"%s\",\"dcp\":%d}\n", shortId,
-        bmv080_output.runtime_in_sec, bmv080_output.pm10_mass_concentration, bmv080_output.pm2_5_mass_concentration, bmv080_output.pm1_mass_concentration,
-        (bmv080_output.is_obstructed ? "yes" : "no"), (bmv080_output.is_outside_measurement_range ? "yes" : "no"),
-        PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S);
-
-//  printf(buffer);
-
-  bmv080_publish(buffer);
+  // Publish through data broker
+  sensor_broker_publish_bmv080(&sensor_data);
   
   // Log the sensor values
   ESP_LOGI("BMV080", "PM10: %.0f µg/m³, PM2.5: %.0f µg/m³, PM1: %.0f µg/m³, Runtime: %.1f s", 
