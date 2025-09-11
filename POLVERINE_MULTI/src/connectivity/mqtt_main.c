@@ -92,48 +92,7 @@ void mqtt_store_read(void)
     }
 }
 
-void mqtt_store_write(const char *buffer)
-{
-    cJSON *json = cJSON_Parse(buffer);
-    
-    if(json) {
-        polverine_mqtt_config_t config = {0};
-        
-        cJSON *uri = cJSON_GetObjectItemCaseSensitive(json, "uri");
-        cJSON *user = cJSON_GetObjectItemCaseSensitive(json, "user");
-        cJSON *pwd = cJSON_GetObjectItemCaseSensitive(json, "pwd");
-        cJSON *clientid = cJSON_GetObjectItemCaseSensitive(json, "clientid");
-        
-        if (uri && cJSON_IsString(uri)) {
-            strncpy(config.uri, uri->valuestring, sizeof(config.uri) - 1);
-        }
-        if (user && cJSON_IsString(user)) {
-            strncpy(config.username, user->valuestring, sizeof(config.username) - 1);
-        }
-        if (pwd && cJSON_IsString(pwd)) {
-            strncpy(config.password, pwd->valuestring, sizeof(config.password) - 1);
-        }
-        if (clientid && cJSON_IsString(clientid)) {
-            strncpy(config.client_id, clientid->valuestring, sizeof(config.client_id) - 1);
-        }
-        
-        if (config_save_mqtt(&config)) {
-            ESP_LOGI(TAG, "MQTT configuration saved");
-        } else {
-            ESP_LOGE(TAG, "Failed to save MQTT configuration");
-        }
-        
-        cJSON_Delete(json);
-    }
-}
 
-// Add a dummy topic_store_write function to maintain compatibility
-void topic_store_write(const char *buffer)
-{
-    // In Home Assistant mode, topics are fixed based on HA discovery
-    // This function is kept for compatibility but doesn't do anything
-    ESP_LOGW(TAG, "topic_store_write called but topics are managed by Home Assistant discovery");
-}
 
 bool isConnected = false;
 esp_mqtt_client_handle_t client = 0;

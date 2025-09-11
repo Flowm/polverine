@@ -40,7 +40,6 @@
 extern void bmv080_app_start();
 extern void bme690_app_start();
 extern void mqtt_app_start(void);
-extern void usb_app_start(void);
 extern const char *TAG;
 char uniqueId[13] = {0};
 char shortId[7] = {0};
@@ -169,9 +168,7 @@ void app_main(void)
     mqtt_app_start();
     ESP_LOGI(TAG, "MQTT application started");
 
-    ESP_LOGI(TAG, "Starting USB application...");
-    usb_app_start();
-    ESP_LOGI(TAG, "USB application started");
+
 
     // Example LED usage:
     // led_flash(LED_GREEN);                    // Quick success indication
