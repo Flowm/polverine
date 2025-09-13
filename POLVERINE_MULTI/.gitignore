@@ -16,3 +16,6 @@ src/bsec_integration.h
 
 # Credentials file
 credentials.ini
+
+# Compressed web assets (generated at build time)
+web/*.gz

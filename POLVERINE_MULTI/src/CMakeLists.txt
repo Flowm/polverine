@@ -3,4 +3,11 @@
 
 FILE(GLOB_RECURSE app_sources ${CMAKE_SOURCE_DIR}/src/*.*)
 
-idf_component_register(SRCS ${app_sources})
+# Find all compressed HTML files
+file(GLOB web_files "../web/*.html.gz")
+
+idf_component_register(
+    SRCS ${app_sources}
+    INCLUDE_DIRS "."
+    EMBED_FILES ${web_files}
+)

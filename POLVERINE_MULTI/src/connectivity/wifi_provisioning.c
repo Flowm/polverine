@@ -27,86 +27,19 @@ static httpd_handle_t server = NULL;
 static bool provisioning_active = false;
 static char ap_ssid[32];
 
-// HTML page for configuration - simplified to reduce size
-static const char *config_html = 
-"<!DOCTYPE html>"
-"<html>"
-"<head>"
-"<meta name='viewport' content='width=device-width,initial-scale=1'>"
-"<title>Polverine Config</title>"
-"<style>"
-"body{font-family:Arial,sans-serif;margin:20px;background:#f0f0f0}"
-".c{max-width:500px;margin:0 auto;background:white;padding:20px;border-radius:10px}"
-"h1{color:#333;text-align:center}"
-"h2{color:#666;margin-top:30px}"
-".g{margin-bottom:15px}"
-"label{display:block;margin-bottom:5px;color:#555;font-weight:bold}"
-"input[type='text'],input[type='password']{width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;box-sizing:border-box}"
-"input[type='submit']{background:#4CAF50;color:white;padding:12px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;width:100%;margin-top:20px}"
-".i{margin-top:20px;padding:10px;border-radius:5px;text-align:center;background:#d1ecf1;color:#0c5460}"
-"</style>"
-"</head>"
-"<body>"
-"<div class='c'>"
-"<h1>Polverine Config</h1>"
-"<form action='/save' method='post'>"
-"<h2>WiFi</h2>"
-"<div class='g'>"
-"<label>SSID:</label>"
-"<input type='text' name='ssid' required>"
-"</div>"
-"<div class='g'>"
-"<label>Password:</label>"
-"<input type='password' name='pass'>"
-"</div>"
-"<h2>MQTT</h2>"
-"<div class='g'>"
-"<label>Broker URI:</label>"
-"<input type='text' name='mqtt_uri' placeholder='mqtt://broker.local' required>"
-"</div>"
-"<div class='g'>"
-"<label>Username:</label>"
-"<input type='text' name='mqtt_user'>"
-"</div>"
-"<div class='g'>"
-"<label>Password:</label>"
-"<input type='password' name='mqtt_pass'>"
-"</div>"
-"<input type='submit' value='Save'>"
-"</form>"
-"<div class='i'>Configure and save to connect.</div>"
-"</div>"
-"</body>"
-"</html>";
-
-// Success page
-static const char *success_html = 
-"<!DOCTYPE html>"
-"<html>"
-"<head>"
-"<meta name='viewport' content='width=device-width, initial-scale=1'>"
-"<title>Configuration Saved</title>"
-"<style>"
-"body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }"
-".container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }"
-"h1 { color: #4CAF50; }"
-".message { margin: 20px 0; font-size: 18px; color: #555; }"
-"</style>"
-"</head>"
-"<body>"
-"<div class='container'>"
-"<h1>✓ Configuration Saved!</h1>"
-"<div class='message'>The device will now restart and connect to your WiFi network.</div>"
-"<div class='message'>You can close this page.</div>"
-"</div>"
-"</body>"
-"</html>";
+// Embedded compressed HTML files
+extern const uint8_t _binary___web_config_html_gz_start[];
+extern const uint8_t _binary___web_config_html_gz_end[];
+extern const uint8_t _binary___web_success_html_gz_start[];
+extern const uint8_t _binary___web_success_html_gz_end[];
 
 static esp_err_t config_get_handler(httpd_req_t *req)
 {
-    ESP_LOGI(TAG, "Serving configuration page");
-    httpd_resp_set_type(req, "text/html");
-    httpd_resp_send(req, config_html, strlen(config_html));
+    ESP_LOGI(TAG, "Serving configuration page (compressed)");
+    const size_t len = _binary___web_config_html_gz_end - _binary___web_config_html_gz_start;
+    httpd_resp_set_type(req, "text/html; charset=utf-8");
+    httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+    httpd_resp_send(req, (const char*)_binary___web_config_html_gz_start, len);
     return ESP_OK;
 }
 
@@ -180,8 +113,10 @@ static esp_err_t save_post_handler(httpd_req_t *req)
     
     if (wifi_saved && mqtt_saved) {
         ESP_LOGI(TAG, "Configuration saved successfully");
-        httpd_resp_set_type(req, "text/html");
-        httpd_resp_send(req, success_html, strlen(success_html));
+        const size_t len = _binary___web_success_html_gz_end - _binary___web_success_html_gz_start;
+        httpd_resp_set_type(req, "text/html; charset=utf-8");
+        httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
+        httpd_resp_send(req, (const char*)_binary___web_success_html_gz_start, len);
         
         // Schedule restart after sending response
         vTaskDelay(pdMS_TO_TICKS(2000));

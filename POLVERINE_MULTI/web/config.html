@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>Polverine Config</title>
+<style>
+body{font-family:Arial,sans-serif;margin:20px;background:#f0f0f0}
+.c{max-width:500px;margin:0 auto;background:white;padding:20px;border-radius:10px}
+h1{color:#333;text-align:center}
+h2{color:#666;margin-top:30px}
+.g{margin-bottom:15px}
+label{display:block;margin-bottom:5px;color:#555;font-weight:bold}
+input[type='text'],input[type='password']{width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;box-sizing:border-box}
+input[type='submit']{background:#4CAF50;color:white;padding:12px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;width:100%;margin-top:20px}
+.i{margin-top:20px;padding:10px;border-radius:5px;text-align:center;background:#d1ecf1;color:#0c5460}
+</style>
+</head>
+<body>
+<div class='c'>
+<h1>Polverine Config</h1>
+<form action='/save' method='post'>
+<h2>WiFi</h2>
+<div class='g'>
+<label>SSID:</label>
+<input type='text' name='ssid' required>
+</div>
+<div class='g'>
+<label>Password:</label>
+<input type='password' name='pass'>
+</div>
+<h2>MQTT</h2>
+<div class='g'>
+<label>Broker URI:</label>
+<input type='text' name='mqtt_uri' placeholder='mqtt://broker.local' required>
+</div>
+<div class='g'>
+<label>Username:</label>
+<input type='text' name='mqtt_user'>
+</div>
+<div class='g'>
+<label>Password:</label>
+<input type='password' name='mqtt_pass'>
+</div>
+<input type='submit' value='Save'>
+</form>
+<div class='i'>Configure and save to connect.</div>
+</div>
+</body>
+</html>
