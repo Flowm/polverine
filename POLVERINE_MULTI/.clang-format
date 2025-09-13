@@ -1,17 +1,29 @@
 ---
 BasedOnStyle: LLVM
 IndentWidth: 4
-ContinuationIndentWidth: 8
+ContinuationIndentWidth: 4
+AlignAfterOpenBracket: DontAlign
 ColumnLimit: 140
 # BreakBeforeBraces: Linux
 PointerAlignment: Right
 AllowShortFunctionsOnASingleLine: None
+AllowShortEnumsOnASingleLine: false
 AlignConsecutiveMacros: Consecutive
 SortIncludes: CaseInsensitive
 IncludeCategories:
   - Regex: '^<.*\.h>'
     Priority: 1
+    SortPriority: 1
   - Regex: '^<.*>'
-    Priority: 2
+    Priority: 1
+    SortPriority: 2
+  - Regex: '^"(esp_|nvs_|lwip/|hal/)'
+    Priority: 1
+    SortPriority: 3
+  - Regex: '^"(freertos/|driver/|mqtt_|cJSON|sdkconfig)'
+    Priority: 1
+    SortPriority: 4
   - Regex: '^".*"'
-    Priority: 3
+    Priority: 5
+    SortPriority: 5
+IncludeBlocks: Regroup
