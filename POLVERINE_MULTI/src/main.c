@@ -39,7 +39,7 @@
 extern void bmv080_app_start();
 extern void bme690_app_start();
 extern void mqtt_app_start(void);
-extern const char *TAG;
+static const char *TAG = "main";
 char uniqueId[13] = {0};
 char shortId[7] = {0};
 
@@ -62,14 +62,8 @@ void app_main(void) {
 
     // Enable more verbose logging for troubleshooting
     esp_log_level_set("*", ESP_LOG_INFO);
-    esp_log_level_set("connect", ESP_LOG_DEBUG);
-    esp_log_level_set("wifi", ESP_LOG_DEBUG);
-    esp_log_level_set("mqtt_client", ESP_LOG_DEBUG);
-    esp_log_level_set("mqtt_polverine", ESP_LOG_DEBUG);
-    esp_log_level_set("transport_base", ESP_LOG_DEBUG);
-    esp_log_level_set("esp-tls", ESP_LOG_DEBUG);
-    esp_log_level_set("transport", ESP_LOG_DEBUG);
-    esp_log_level_set("outbox", ESP_LOG_DEBUG);
+    esp_log_level_set("wifi_connect", ESP_LOG_DEBUG);
+
     ESP_LOGI(TAG, "Initializing NVS flash...");
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_LOGI(TAG, "NVS flash initialized");

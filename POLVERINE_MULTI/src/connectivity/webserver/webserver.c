@@ -11,7 +11,7 @@
 #include "esp_log.h"
 #include "esp_system.h"
 
-static const char *TAG = "WEBSERVER";
+static const char *TAG = "web";
 
 // Web server handle
 static httpd_handle_t server = NULL;

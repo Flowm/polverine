@@ -10,6 +10,8 @@
 #include "polverine_cfg.h"
 #include "sensor_data_broker.h"
 
+static const char *TAG = "bmv080";
+
 spi_device_handle_t hspi;
 // extern bool isConnected;
 // extern esp_mqtt_client_handle_t client;
@@ -35,9 +37,9 @@ void bmv080_data_ready(bmv080_output_t bmv080_output, void *callback_parameters)
     sensor_broker_publish_bmv080(&sensor_data);
 
     // Log the sensor values
-    ESP_LOGI("BMV080", "PM10: %.0f µg/m³, PM2.5: %.0f µg/m³, PM1: %.0f µg/m³, Runtime: %.1f s", bmv080_output.pm10_mass_concentration,
+    ESP_LOGI(TAG, "PM10: %.0f µg/m³, PM2.5: %.0f µg/m³, PM1: %.0f µg/m³, Runtime: %.1f s", bmv080_output.pm10_mass_concentration,
         bmv080_output.pm2_5_mass_concentration, bmv080_output.pm1_mass_concentration, bmv080_output.runtime_in_sec);
-    ESP_LOGI("BMV080", "Obstructed: %s, Out of range: %s", (bmv080_output.is_obstructed ? "YES" : "NO"),
+    ESP_LOGI(TAG, "Obstructed: %s, Out of range: %s", (bmv080_output.is_obstructed ? "YES" : "NO"),
         (bmv080_output.is_outside_measurement_range ? "YES" : "NO"));
 
     flBMV080Published = true;

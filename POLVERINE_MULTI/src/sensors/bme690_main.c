@@ -26,6 +26,8 @@
 #include "sensor_buffer.h"
 #include "sensor_data_broker.h"
 
+static const char *TAG = "bme690";
+
 #define SID_BME69X    UINT16_C(0x093)
 #define SID_BME69X_X8 UINT16_C(0x057)
 
@@ -67,7 +69,7 @@ void bme690_task(void *) {
 
     ret = bsec_iot_init(SAMPLE_RATE, bme69x_interface_init, state_load, config_load);
 
-    ESP_LOGI("BME690", "BSEC initialized with CONTINUOUS sampling rate (1Hz)");
+    ESP_LOGI(TAG, "BSEC initialized with CONTINUOUS sampling rate (1Hz)");
 
     if (ret.bme69x_status != BME69X_OK) {
         printf("ERROR while initializing BME68x: %d\r\n", ret.bme69x_status);
@@ -104,12 +106,12 @@ static uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer) {
     esp_err_t err;
     size_t length = n_buffer;
 
-    ESP_LOGI("BME690", "Loading BSEC state from NVS...");
+    ESP_LOGI(TAG, "Loading BSEC state from NVS...");
 
     // Open NVS handle
     err = nvs_open(BME690_NVS_NAMESPACE, NVS_READONLY, &nvs_handle);
     if (err != ESP_OK) {
-        ESP_LOGW("BME690", "Failed to open NVS for reading: %s", esp_err_to_name(err));
+        ESP_LOGW(TAG, "Failed to open NVS for reading: %s", esp_err_to_name(err));
         return 0;
     }
 
@@ -118,12 +120,12 @@ static uint32_t state_load(uint8_t *state_buffer, uint32_t n_buffer) {
     nvs_close(nvs_handle);
 
     if (err == ESP_OK) {
-        ESP_LOGI("BME690", "Successfully loaded BSEC state from NVS (%lu bytes)", (unsigned long)length);
+        ESP_LOGI(TAG, "Successfully loaded BSEC state from NVS (%lu bytes)", (unsigned long)length);
         return length;
     } else if (err == ESP_ERR_NVS_NOT_FOUND) {
-        ESP_LOGI("BME690", "No saved BSEC state found in NVS");
+        ESP_LOGI(TAG, "No saved BSEC state found in NVS");
     } else {
-        ESP_LOGW("BME690", "Failed to load BSEC state: %s", esp_err_to_name(err));
+        ESP_LOGW(TAG, "Failed to load BSEC state: %s", esp_err_to_name(err));
     }
 
     return 0;
@@ -167,19 +169,19 @@ static void state_save(const uint8_t *state_buffer, uint32_t length) {
         return;
     }
 
-    ESP_LOGI("BME690", "Saving BSEC state to NVS (%lu bytes)...", (unsigned long)length);
+    ESP_LOGI(TAG, "Saving BSEC state to NVS (%lu bytes)...", (unsigned long)length);
 
     // Open NVS handle
     err = nvs_open(BME690_NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
     if (err != ESP_OK) {
-        ESP_LOGE("BME690", "Failed to open NVS for writing: %s", esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to open NVS for writing: %s", esp_err_to_name(err));
         return;
     }
 
     // Save the state data
     err = nvs_set_blob(nvs_handle, BME690_NVS_STATE_KEY, state_buffer, length);
     if (err != ESP_OK) {
-        ESP_LOGE("BME690", "Failed to save BSEC state: %s", esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to save BSEC state: %s", esp_err_to_name(err));
         nvs_close(nvs_handle);
         return;
     }
@@ -189,10 +191,10 @@ static void state_save(const uint8_t *state_buffer, uint32_t length) {
     nvs_close(nvs_handle);
 
     if (err == ESP_OK) {
-        ESP_LOGI("BME690", "Successfully saved BSEC state to NVS");
+        ESP_LOGI(TAG, "Successfully saved BSEC state to NVS");
         last_save_time = current_time;
     } else {
-        ESP_LOGE("BME690", "Failed to commit BSEC state: %s", esp_err_to_name(err));
+        ESP_LOGE(TAG, "Failed to commit BSEC state: %s", esp_err_to_name(err));
     }
 }
 
@@ -207,7 +209,7 @@ static void output_ready(outputs_t *output) {
     if (first_output) {
         startup_time = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
         first_output = false;
-        ESP_LOGI("BME690", "First BSEC output received - starting calibration period");
+        ESP_LOGI(TAG, "First BSEC output received - starting calibration period");
     }
 
     // Create data structure from BSEC output
@@ -251,12 +253,12 @@ static void output_ready(outputs_t *output) {
     const char *stab_status = output->stabStatus ? "Stabilized" : "Stabilizing";
     const char *runin_status = output->runInStatus ? "Complete" : "Running";
 
-    ESP_LOGI("BME690", "Uptime: %lu s, Accuracy: %d (%s), Stabilization: %s, Run-in: %s", (unsigned long)uptime, output->iaq_accuracy,
+    ESP_LOGI(TAG, "Uptime: %lu s, Accuracy: %d (%s), Stabilization: %s, Run-in: %s", (unsigned long)uptime, output->iaq_accuracy,
         accuracy_desc, stab_status, runin_status);
 
     // Force save when IAQ accuracy improves
     if (output->iaq_accuracy > last_iaq_accuracy) {
-        ESP_LOGI("BME690", "IAQ accuracy improved: %d -> %d", last_iaq_accuracy, output->iaq_accuracy);
+        ESP_LOGI(TAG, "IAQ accuracy improved: %d -> %d", last_iaq_accuracy, output->iaq_accuracy);
         last_iaq_accuracy = output->iaq_accuracy;
         // Force a save when accuracy improves
         if (latest_state_buffer != NULL && latest_state_length > 0) {
@@ -288,11 +290,11 @@ static void output_ready(outputs_t *output) {
 
         // Log the published values (matches current logging)
         const char *prefix = use_averaged ? "Averaged - " : "";
-        ESP_LOGI("BME690", "%sTemp: %.2f°C, Press: %.2f Pa, Hum: %.2f%%", prefix, data_to_publish.temperature, data_to_publish.pressure,
+        ESP_LOGI(TAG, "%sTemp: %.2f°C, Press: %.2f Pa, Hum: %.2f%%", prefix, data_to_publish.temperature, data_to_publish.pressure,
             data_to_publish.humidity);
-        ESP_LOGI("BME690", "%sIAQ: %.2f (acc: %d), CO2: %.2f ppm, VOC: %.2f ppm", prefix, data_to_publish.iaq, data_to_publish.iaq_accuracy,
+        ESP_LOGI(TAG, "%sIAQ: %.2f (acc: %d), CO2: %.2f ppm, VOC: %.2f ppm", prefix, data_to_publish.iaq, data_to_publish.iaq_accuracy,
             data_to_publish.co2_equivalent, data_to_publish.breath_voc_equivalent);
-        ESP_LOGI("BME690", "Raw gas: %.2f ohms, Gas percentage: %.2f%%, Static IAQ: %.2f", output->raw_gas, data_to_publish.gas_percentage,
+        ESP_LOGI(TAG, "Raw gas: %.2f ohms, Gas percentage: %.2f%%, Static IAQ: %.2f", output->raw_gas, data_to_publish.gas_percentage,
             data_to_publish.static_iaq);
     }
     // led_set(LED_GREEN, LED_OFF);
@@ -318,7 +320,7 @@ static void bme690_force_state_save(void) {
         nvs_handle_t nvs_handle;
         esp_err_t err;
 
-        ESP_LOGI("BME690", "Force saving BSEC state to NVS (%lu bytes)...", (unsigned long)latest_state_length);
+        ESP_LOGI(TAG, "Force saving BSEC state to NVS (%lu bytes)...", (unsigned long)latest_state_length);
 
         err = nvs_open(BME690_NVS_NAMESPACE, NVS_READWRITE, &nvs_handle);
         if (err == ESP_OK) {
@@ -326,14 +328,14 @@ static void bme690_force_state_save(void) {
             if (err == ESP_OK) {
                 err = nvs_commit(nvs_handle);
                 if (err == ESP_OK) {
-                    ESP_LOGI("BME690", "Successfully forced BSEC state save");
+                    ESP_LOGI(TAG, "Successfully forced BSEC state save");
                 }
             }
             nvs_close(nvs_handle);
         }
 
         if (err != ESP_OK) {
-            ESP_LOGE("BME690", "Failed to force save BSEC state: %s", esp_err_to_name(err));
+            ESP_LOGE(TAG, "Failed to force save BSEC state: %s", esp_err_to_name(err));
         }
     }
 }

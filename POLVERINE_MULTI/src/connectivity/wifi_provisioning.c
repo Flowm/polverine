@@ -16,7 +16,7 @@
 
 #include "config.h"
 
-static const char *TAG = "wifi_prov";
+static const char *TAG = "wifi_provisioning";
 
 // SoftAP configuration
 #define PROV_AP_SSID_PREFIX "Polverine-"

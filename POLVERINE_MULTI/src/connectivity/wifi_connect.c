@@ -34,7 +34,7 @@
 #define POLVERINE_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_PSK
 #define POLVERINE_NETIF_DESC_STA                "polverine_sta"
 
-static const char *TAG = "connect";
+static const char *TAG = "wifi_connect";
 static esp_netif_t *s_example_sta_netif = NULL;
 static SemaphoreHandle_t s_semph_get_ip_addrs = NULL;
 static TimerHandle_t s_dhcp_retry_timer = NULL;
@@ -466,22 +466,21 @@ esp_err_t wifi_connect(void) {
 }
 
 esp_err_t polverine_connect(void) {
-    static const char *CONNECT_TAG = "polverine_connect";
-    ESP_LOGI(CONNECT_TAG, "Starting polverine_connect...");
+    ESP_LOGI(TAG, "Starting polverine_connect...");
 
-    ESP_LOGI(CONNECT_TAG, "Calling wifi_connect()...");
+    ESP_LOGI(TAG, "Calling wifi_connect()...");
     esp_err_t ret = wifi_connect();
     if (ret != ESP_OK) {
-        ESP_LOGE(CONNECT_TAG, "wifi_connect failed with error: 0x%x", ret);
+        ESP_LOGE(TAG, "wifi_connect failed with error: 0x%x", ret);
         return ESP_FAIL;
     }
-    ESP_LOGI(CONNECT_TAG, "wifi_connect successful");
+    ESP_LOGI(TAG, "wifi_connect successful");
 
-    ESP_LOGI(CONNECT_TAG, "Registering shutdown handler...");
+    ESP_LOGI(TAG, "Registering shutdown handler...");
     ESP_ERROR_CHECK(esp_register_shutdown_handler(&wifi_shutdown));
-    ESP_LOGI(CONNECT_TAG, "Shutdown handler registered");
+    ESP_LOGI(TAG, "Shutdown handler registered");
 
-    ESP_LOGI(CONNECT_TAG, "polverine_connect completed successfully");
+    ESP_LOGI(TAG, "polverine_connect completed successfully");
     return ESP_OK;
 }
 

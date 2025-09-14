@@ -15,7 +15,7 @@
 #include "config.h"
 #include "webserver.h"
 
-static const char *TAG = "WEBSERVER_CONFIG";
+static const char *TAG = "web_config";
 
 // External device ID from main.c
 extern char shortId[7];

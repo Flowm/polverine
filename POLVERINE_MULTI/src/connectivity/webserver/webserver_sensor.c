@@ -19,7 +19,7 @@
 #include "sensor_data_broker.h"
 #include "webserver.h"
 
-static const char *TAG = "WEBSERVER_SENSOR";
+static const char *TAG = "web_sensor";
 
 // Latest sensor data
 static bme690_data_t latest_bme690_data = {0};

@@ -1,7 +1,7 @@
 #include "esp_log.h"
 #include "esp_pm.h"
 
-static const char *TAG = "power_management";
+static const char *TAG = "system";
 
 void pm_init(void) {
 #if CONFIG_PM_ENABLE

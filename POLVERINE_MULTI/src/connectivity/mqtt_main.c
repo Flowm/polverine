@@ -13,7 +13,7 @@
 #include "config.h"
 #include "sensor_data_broker.h"
 
-const char *TAG = "mqtt_polverine_ha";
+static const char *TAG = "mqtt";
 
 // Secrets moved to external configuration
 

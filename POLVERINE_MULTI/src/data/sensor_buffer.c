@@ -3,7 +3,7 @@
 #include <string.h>
 #include "esp_log.h"
 
-static const char *TAG = "SENSOR_BUFFER";
+static const char *TAG = "sensor_buffer";
 
 void bme690_buffer_init(bme690_sensor_buffer_t *buffer) {
     if (buffer == NULL) {

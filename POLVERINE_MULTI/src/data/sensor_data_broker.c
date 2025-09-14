@@ -3,7 +3,7 @@
 #include <string.h>
 #include "esp_log.h"
 
-static const char *TAG = "SENSOR_BROKER";
+static const char *TAG = "sensor_broker";
 
 #define MAX_BME690_CALLBACKS 4
 #define MAX_BMV080_CALLBACKS 4
