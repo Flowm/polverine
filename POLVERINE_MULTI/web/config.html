@@ -1,125 +1,316 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-<meta name='viewport' content='width=device-width,initial-scale=1'>
-<title>Polverine Config</title>
-<style>
-body{font-family:Arial,sans-serif;margin:20px;background:#f0f0f0}
-.c{max-width:500px;margin:0 auto;background:white;padding:20px;border-radius:10px}
-h1{color:#333;text-align:center}
-h2{color:#666;margin-top:30px}
-.g{margin-bottom:15px}
-label{display:block;margin-bottom:5px;color:#555;font-weight:bold}
-input[type='text'],input[type='password']{width:100%;padding:10px;border:1px solid #ddd;border-radius:5px;box-sizing:border-box}
-input[type='submit']{background:#4CAF50;color:white;padding:12px 20px;border:none;border-radius:5px;cursor:pointer;font-size:16px;width:100%;margin-top:20px}
-.i{margin-top:20px;padding:10px;border-radius:5px;text-align:center;background:#d1ecf1;color:#0c5460}
-.current{background:#e7f3ff;border:1px solid #b3d9ff;padding:10px;border-radius:5px;margin-bottom:10px}
-.current-label{font-weight:bold;color:#0056b3;font-size:0.9em}
-.current-value{color:#333;font-family:monospace;margin-left:10px}
-.status{padding:5px 10px;border-radius:3px;font-size:0.8em;margin-left:10px}
-.status.configured{background:#d4edda;color:#155724}
-.status.not-configured{background:#f8d7da;color:#721c24}
-.nav-link{display:inline-block;background:#6c757d;color:white;text-decoration:none;padding:8px 16px;border-radius:5px;font-size:0.9em;margin-bottom:20px;transition:background 0.3s}
-.nav-link:hover{background:#495057}
-.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
-.header-row h1{margin:0}
-</style>
-</head>
-<body>
-<div class='c'>
-<div class='header-row'>
-<h1>Polverine Config</h1>
-<a href='/' class='nav-link'>📊 Dashboard</a>
-</div>
-<form action='/config/save' method='post'>
-<h2>WiFi <span id='wifi-status' class='status'></span></h2>
-<div class='current' id='current-wifi' style='display:none'>
-<div class='current-label'>Current SSID:</div>
-<div class='current-value' id='current-ssid'></div>
-</div>
-<div class='g'>
-<label>SSID:</label>
-<input type='text' name='ssid' id='ssid-input' required>
-</div>
-<div class='g'>
-<label>Password:</label>
-<input type='password' name='pass' id='pass-input'>
-</div>
-<h2>MQTT <span id='mqtt-status' class='status'></span></h2>
-<div class='current' id='current-mqtt' style='display:none'>
-<div class='current-label'>Current Broker:</div>
-<div class='current-value' id='current-broker'></div>
-<div class='current-label'>Current Username:</div>
-<div class='current-value' id='current-username'></div>
-</div>
-<div class='g'>
-<label>Broker URI:</label>
-<input type='text' name='mqtt_uri' id='mqtt-uri-input' placeholder='mqtt://broker.local' required>
-</div>
-<div class='g'>
-<label>Username:</label>
-<input type='text' name='mqtt_user' id='mqtt-user-input'>
-</div>
-<div class='g'>
-<label>Password:</label>
-<input type='password' name='mqtt_pass' id='mqtt-pass-input'>
-</div>
-<input type='submit' value='Save'>
-</form>
-<div class='i'>Configure and save to connect.</div>
-</div>
+  <head>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Polverine Config</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f0f0f0;
+        color: #333;
+      }
 
-<script>
-function loadCurrentConfig() {
-    fetch('/config/get')
-        .then(response => {
+      .container {
+        max-width: 500px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      h1 {
+        color: #2c3e50;
+        text-align: center;
+        margin: 0;
+        font-weight: 500;
+      }
+
+      h2 {
+        color: #495057;
+        margin-top: 30px;
+        font-weight: 500;
+      }
+
+      .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+      }
+
+      .device-id {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-top: 5px;
+        font-family: monospace;
+      }
+
+      .nav-link {
+        display: inline-block;
+        background: #6c757d;
+        color: white;
+        text-decoration: none;
+        padding: 8px 16px;
+        border-radius: 5px;
+        font-size: 0.9em;
+        transition: background 0.3s;
+      }
+
+      .nav-link:hover {
+        background: #495057;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 5px;
+        color: #555;
+        font-weight: 500;
+      }
+
+      input[type="text"],
+      input[type="password"] {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+
+      input[type="submit"] {
+        background: #4caf50;
+        color: white;
+        padding: 12px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        width: 100%;
+        margin-top: 20px;
+        transition: background 0.3s;
+      }
+
+      input[type="submit"]:hover {
+        background: #45a049;
+      }
+
+      .status {
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 0.8em;
+        margin-left: 10px;
+        font-weight: 500;
+      }
+
+      .status.configured {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status.not-configured {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .current {
+        background: #e7f3ff;
+        border: 1px solid #b3d9ff;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+      }
+
+      .current-label {
+        font-weight: 500;
+        color: #0056b3;
+        font-size: 0.9em;
+      }
+
+      .current-value {
+        color: #333;
+        font-family: monospace;
+        margin-left: 10px;
+      }
+
+      .info-message {
+        margin-top: 20px;
+        padding: 15px;
+        border-radius: 5px;
+        text-align: center;
+        background: #d1ecf1;
+        color: #0c5460;
+        font-size: 14px;
+      }
+
+      @media (max-width: 480px) {
+        body {
+          margin: 10px;
+        }
+
+        .container {
+          padding: 15px;
+        }
+
+        .header-row {
+          flex-direction: column;
+          gap: 15px;
+          text-align: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header-row">
+        <div>
+          <h1>Polverine Config</h1>
+          <div class="device-id" id="device-id">Device ID: Loading...</div>
+        </div>
+        <a href="/" class="nav-link">📊 Dashboard</a>
+      </div>
+
+      <form action="/config/save" method="post">
+        <h2>WiFi <span id="wifi-status" class="status"></span></h2>
+        <div class="current" id="current-wifi" style="display: none">
+          <div class="current-label">Current SSID:</div>
+          <div class="current-value" id="current-ssid"></div>
+        </div>
+        <div class="form-group">
+          <label>SSID:</label>
+          <input type="text" name="ssid" id="ssid-input" required />
+        </div>
+        <div class="form-group">
+          <label>Password:</label>
+          <input type="password" name="pass" id="pass-input" />
+        </div>
+
+        <h2>MQTT <span id="mqtt-status" class="status"></span></h2>
+        <div class="current" id="current-mqtt" style="display: none">
+          <div class="current-label">Current Broker:</div>
+          <div class="current-value" id="current-broker"></div>
+          <div class="current-label">Current Username:</div>
+          <div class="current-value" id="current-username"></div>
+        </div>
+        <div class="form-group">
+          <label>Broker URI:</label>
+          <input
+            type="text"
+            name="mqtt_uri"
+            id="mqtt-uri-input"
+            placeholder="mqtt://broker.local"
+            required
+          />
+        </div>
+        <div class="form-group">
+          <label>Username:</label>
+          <input type="text" name="mqtt_user" id="mqtt-user-input" />
+        </div>
+        <div class="form-group">
+          <label>Password:</label>
+          <input type="password" name="mqtt_pass" id="mqtt-pass-input" />
+        </div>
+
+        <input type="submit" value="Save Configuration" />
+      </form>
+
+      <div class="info-message">
+        Configure and save to connect to your network.
+      </div>
+    </div>
+
+    <script>
+      function loadCurrentConfig() {
+        fetch("/config/get")
+          .then((response) => {
             if (!response.ok) {
-                throw new Error('Failed to load current configuration');
+              throw new Error("Failed to load current configuration");
             }
             return response.json();
-        })
-        .then(data => {
+          })
+          .then((data) => {
             // Update WiFi section
             if (data.wifi_configured) {
-                document.getElementById('wifi-status').textContent = 'Configured';
-                document.getElementById('wifi-status').className = 'status configured';
-                document.getElementById('current-wifi').style.display = 'block';
-                document.getElementById('current-ssid').textContent = data.wifi.ssid || 'Not set';
-                document.getElementById('ssid-input').value = data.wifi.ssid || '';
+              document.getElementById("wifi-status").textContent = "Configured";
+              document.getElementById("wifi-status").className =
+                "status configured";
+              document.getElementById("current-wifi").style.display = "block";
+              document.getElementById("current-ssid").textContent =
+                data.wifi.ssid || "Not set";
+              document.getElementById("ssid-input").value =
+                data.wifi.ssid || "";
             } else {
-                document.getElementById('wifi-status').textContent = 'Not Configured';
-                document.getElementById('wifi-status').className = 'status not-configured';
-                document.getElementById('current-wifi').style.display = 'none';
+              document.getElementById("wifi-status").textContent =
+                "Not Configured";
+              document.getElementById("wifi-status").className =
+                "status not-configured";
+              document.getElementById("current-wifi").style.display = "none";
             }
-            
+
             // Update MQTT section
             if (data.mqtt_configured) {
-                document.getElementById('mqtt-status').textContent = 'Configured';
-                document.getElementById('mqtt-status').className = 'status configured';
-                document.getElementById('current-mqtt').style.display = 'block';
-                document.getElementById('current-broker').textContent = data.mqtt.uri || 'Not set';
-                document.getElementById('current-username').textContent = data.mqtt.username || 'Not set';
-                document.getElementById('mqtt-uri-input').value = data.mqtt.uri || '';
-                document.getElementById('mqtt-user-input').value = data.mqtt.username || '';
+              document.getElementById("mqtt-status").textContent = "Configured";
+              document.getElementById("mqtt-status").className =
+                "status configured";
+              document.getElementById("current-mqtt").style.display = "block";
+              document.getElementById("current-broker").textContent =
+                data.mqtt.uri || "Not set";
+              document.getElementById("current-username").textContent =
+                data.mqtt.username || "Not set";
+              document.getElementById("mqtt-uri-input").value =
+                data.mqtt.uri || "";
+              document.getElementById("mqtt-user-input").value =
+                data.mqtt.username || "";
             } else {
-                document.getElementById('mqtt-status').textContent = 'Not Configured';
-                document.getElementById('mqtt-status').className = 'status not-configured';
-                document.getElementById('current-mqtt').style.display = 'none';
+              document.getElementById("mqtt-status").textContent =
+                "Not Configured";
+              document.getElementById("mqtt-status").className =
+                "status not-configured";
+              document.getElementById("current-mqtt").style.display = "none";
             }
-        })
-        .catch(error => {
-            console.error('Error loading current configuration:', error);
-            document.getElementById('wifi-status').textContent = 'Error';
-            document.getElementById('wifi-status').className = 'status not-configured';
-            document.getElementById('mqtt-status').textContent = 'Error';
-            document.getElementById('mqtt-status').className = 'status not-configured';
-        });
-}
+          })
+          .catch((error) => {
+            console.error("Error loading current configuration:", error);
+            document.getElementById("wifi-status").textContent = "Error";
+            document.getElementById("wifi-status").className =
+              "status not-configured";
+            document.getElementById("mqtt-status").textContent = "Error";
+            document.getElementById("mqtt-status").className =
+              "status not-configured";
+          });
+      }
 
-// Load current configuration when page loads
-document.addEventListener('DOMContentLoaded', function() {
-    loadCurrentConfig();
-});
-</script>
-</body>
+      function loadDeviceId() {
+        fetch("/data")
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error("Failed to load device ID");
+          })
+          .then((data) => {
+            if (data.device_id) {
+              document.getElementById("device-id").textContent =
+                "Device ID: " + data.device_id;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading device ID:", error);
+            document.getElementById("device-id").textContent =
+              "Device ID: Unknown";
+          });
+      }
+
+      // Load current configuration when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadCurrentConfig();
+        loadDeviceId();
+      });
+    </script>
+  </body>
 </html>

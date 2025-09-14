@@ -19,6 +19,9 @@
 #include "sensor_data_broker.h"
 #include "webserver.h"
 
+// External device ID from main.c
+extern char shortId[7];
+
 static const char *TAG = "web_sensor";
 
 // Latest sensor data
@@ -74,6 +77,9 @@ static esp_err_t data_get_handler(httpd_req_t *req) {
     // Add timestamp
     cJSON *timestamp = cJSON_CreateNumber(esp_timer_get_time() / 1000); // Convert to milliseconds
     cJSON_AddItemToObject(json, "timestamp", timestamp);
+
+    // Add device ID
+    cJSON_AddStringToObject(json, "device_id", shortId);
 
     // Add BME690 data
     if (bme690_data_available) {

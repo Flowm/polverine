@@ -1,20 +1,142 @@
-<!DOCTYPE html>
+<!doctype html>
 <html>
-<head>
-<meta name='viewport' content='width=device-width, initial-scale=1'>
-<title>Configuration Saved</title>
-<style>
-body { font-family: Arial, sans-serif; margin: 20px; background: #f0f0f0; }
-.container { max-width: 500px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); text-align: center; }
-h1 { color: #4CAF50; }
-.message { margin: 20px 0; font-size: 18px; color: #555; }
-</style>
-</head>
-<body>
-<div class='container'>
-<h1>✓ Configuration Saved!</h1>
-<div class='message'>The device will now restart and connect to your WiFi network.</div>
-<div class='message'>You can close this page.</div>
-</div>
-</body>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Configuration Saved</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background: #f0f0f0;
+        color: #333;
+      }
+
+      .container {
+        max-width: 500px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
+
+      h1 {
+        color: #4caf50;
+        margin-bottom: 20px;
+        font-weight: 500;
+        margin-top: 10px;
+      }
+
+      .success-icon {
+        font-size: 3em;
+        color: #4caf50;
+        margin-bottom: 20px;
+        display: block;
+      }
+
+      .message {
+        margin: 20px 0;
+        font-size: 16px;
+        color: #495057;
+        line-height: 1.5;
+      }
+
+      .device-id {
+        font-size: 0.9em;
+        color: #6c757d;
+        margin-top: 15px;
+        font-family: monospace;
+        background: #f8f9fa;
+        padding: 8px;
+        border-radius: 5px;
+        border: 1px solid #e9ecef;
+      }
+
+      .info-message {
+        background: #d1ecf1;
+        color: #0c5460;
+        padding: 15px;
+        border-radius: 5px;
+        font-size: 14px;
+        margin-top: 30px;
+        line-height: 1.4;
+      }
+
+      .status {
+        text-align: center;
+        padding: 15px;
+        border-radius: 5px;
+        margin-top: 20px;
+        font-weight: 500;
+        font-size: 14px;
+      }
+
+      .status.good {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      @media (max-width: 480px) {
+        body {
+          margin: 10px;
+        }
+
+        .container {
+          padding: 15px;
+        }
+
+        .success-icon {
+          font-size: 2.5em;
+        }
+
+        .message {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="success-icon">✓</div>
+      <h1>Configuration Saved!</h1>
+      <div class="message">
+        The device will now restart and connect to your WiFi network.
+      </div>
+      <div class="message">You can close this page.</div>
+      <div class="device-id" id="device-id">Device ID: Loading...</div>
+      <div class="info-message">
+        The device may take up to 30 seconds to restart and reconnect. Once
+        connected, you can access the dashboard at the device's new IP address.
+      </div>
+    </div>
+
+    <script>
+      function loadDeviceId() {
+        fetch("/data")
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error("Failed to load device ID");
+          })
+          .then((data) => {
+            if (data.device_id) {
+              document.getElementById("device-id").textContent =
+                "Device ID: " + data.device_id;
+            }
+          })
+          .catch((error) => {
+            console.error("Error loading device ID:", error);
+            document.getElementById("device-id").textContent =
+              "Device ID: Unknown";
+          });
+      }
+
+      // Load device ID when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        loadDeviceId();
+      });
+    </script>
+  </body>
 </html>
