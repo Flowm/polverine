@@ -15,7 +15,6 @@
 #include "esp_log.h"
 #include "esp_mac.h"
 #include "esp_netif.h"
-#include "esp_pm.h"
 #include "esp_system.h"
 #include "esp_wifi.h"
 #include "lwip/dns.h"
@@ -33,6 +32,7 @@
 #include "led_control.h"
 #include "protocol_common.h"
 #include "sensor_data_broker.h"
+#include "system_init.h"
 #include "webserver.h"
 #include "wifi_provisioning.h"
 
@@ -44,26 +44,6 @@ char uniqueId[13] = {0};
 char shortId[7] = {0};
 
 extern void mqtt_default_init(const char *id);
-
-void pm_init(void) {
-    static const char *TAG = "power_management";
-#if CONFIG_PM_ENABLE
-    esp_pm_config_t pm_config = {
-        .max_freq_mhz = 160,
-        .min_freq_mhz = 80,
-        .light_sleep_enable = false // Disable light sleep to improve WiFi stability
-    };
-
-    esp_err_t err = esp_pm_configure(&pm_config);
-    if (err != ESP_OK) {
-        ESP_LOGE(TAG, "Failed to configure power management: %s", esp_err_to_name(err));
-    } else {
-        ESP_LOGI(TAG, "Power management configured successfully");
-    }
-#else
-    ESP_LOGW(TAG, "Power management is not enabled in sdkconfig");
-#endif
-}
 
 void app_main(void) {
 
