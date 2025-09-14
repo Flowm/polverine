@@ -1,5 +1,4 @@
-#ifndef SYSTEM_INIT_H_
-#define SYSTEM_INIT_H_
+#pragma once
 
 /**
  * @brief Initialize power management configuration
@@ -8,5 +7,3 @@
  * by setting frequency limits and disabling light sleep.
  */
 void pm_init(void);
-
-#endif /* SYSTEM_INIT_H_ */

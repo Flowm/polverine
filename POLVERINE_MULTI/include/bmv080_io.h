@@ -2,8 +2,7 @@
  * Copyright (C) BlackIoT Sagl All Rights Reserved. Confidential.
  *
  */
-#ifndef BMV080_IO_H_
-#define BMV080_IO_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,5 +27,3 @@ int8_t bmv080_delay(uint32_t period);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* BMV080_IO_H_ */

@@ -3,8 +3,7 @@
  * @brief Handle button press for configuration reset
  */
 
-#ifndef BUTTON_HANDLER_H_
-#define BUTTON_HANDLER_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,5 +18,3 @@ void button_handler_init(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* BUTTON_HANDLER_H_ */

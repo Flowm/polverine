@@ -7,8 +7,7 @@
  * and status indication patterns.
  */
 
-#ifndef LED_CONTROL_H_
-#define LED_CONTROL_H_
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -85,5 +84,3 @@ void led_flash(led_color_t color);
 #ifdef __cplusplus
 }
 #endif /* __cplusplus */
-
-#endif /* LED_CONTROL_H_ */

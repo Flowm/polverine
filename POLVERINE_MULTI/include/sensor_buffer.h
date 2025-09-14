@@ -1,5 +1,4 @@
-#ifndef SENSOR_BUFFER_H
-#define SENSOR_BUFFER_H
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -93,5 +92,3 @@ bmv080_data_t bmv080_buffer_get_latest(const bmv080_sensor_buffer_t *buffer);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // SENSOR_BUFFER_H

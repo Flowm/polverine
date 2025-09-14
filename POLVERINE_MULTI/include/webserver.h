@@ -3,8 +3,7 @@
  * @brief Unified web server for sensor data and configuration
  */
 
-#ifndef WEBSERVER_H
-#define WEBSERVER_H
+#pragma once
 
 #include <stdbool.h>
 #include "esp_err.h"
@@ -61,5 +60,3 @@ esp_err_t webserver_register_config_handlers(httpd_handle_t server);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // WEBSERVER_H

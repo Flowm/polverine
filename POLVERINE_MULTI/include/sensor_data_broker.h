@@ -1,5 +1,4 @@
-#ifndef SENSOR_DATA_BROKER_H
-#define SENSOR_DATA_BROKER_H
+#pragma once
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -78,5 +77,3 @@ void sensor_broker_publish_bmv080(const bmv080_data_t *data);
 #ifdef __cplusplus
 }
 #endif
-
-#endif // SENSOR_DATA_BROKER_H

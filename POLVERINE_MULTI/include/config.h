@@ -6,8 +6,7 @@
  * with fallback to environment-based defaults.
  */
 
-#ifndef CONFIG_H_
-#define CONFIG_H_
+#pragma once
 
 #include <stdbool.h>
 
@@ -73,5 +72,3 @@ bool config_clear_all(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* CONFIG_H_ */

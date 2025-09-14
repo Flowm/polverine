@@ -1,5 +1,4 @@
-#ifndef BME690_IO_H_
-#define BME690_IO_H_
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,5 +26,3 @@ void bme69x_interface_init(struct bme69x_dev *bme, uint8_t intf, uint8_t sen_no)
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* BME690_IO_H_ */

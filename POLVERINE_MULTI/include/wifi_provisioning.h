@@ -3,8 +3,7 @@
  * @brief WiFi provisioning with SoftAP and web portal
  */
 
-#ifndef WIFI_PROVISIONING_H_
-#define WIFI_PROVISIONING_H_
+#pragma once
 
 #include <stdbool.h>
 #include "esp_err.h"
@@ -46,5 +45,3 @@ void provisioning_reset(void);
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* WIFI_PROVISIONING_H_ */
