@@ -28,18 +28,18 @@ static bool provisioning_active = false;
 static char ap_ssid[32];
 
 // Embedded compressed HTML files
-extern const uint8_t _binary___web_config_html_gz_start[];
-extern const uint8_t _binary___web_config_html_gz_end[];
-extern const uint8_t _binary___web_success_html_gz_start[];
-extern const uint8_t _binary___web_success_html_gz_end[];
+extern const uint8_t config_html_gz_start[] asm("_binary_config_html_gz_start");
+extern const uint8_t config_html_gz_end[] asm("_binary_config_html_gz_end");
+extern const uint8_t success_html_gz_start[] asm("_binary_success_html_gz_start");
+extern const uint8_t success_html_gz_end[] asm("_binary_success_html_gz_end");
 
 static esp_err_t config_get_handler(httpd_req_t *req)
 {
     ESP_LOGI(TAG, "Serving configuration page (compressed)");
-    const size_t len = _binary___web_config_html_gz_end - _binary___web_config_html_gz_start;
+    const size_t len = config_html_gz_end - config_html_gz_start;
     httpd_resp_set_type(req, "text/html; charset=utf-8");
     httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
-    httpd_resp_send(req, (const char*)_binary___web_config_html_gz_start, len);
+    httpd_resp_send(req, (const char*)config_html_gz_start, len);
     return ESP_OK;
 }
 
@@ -113,10 +113,10 @@ static esp_err_t save_post_handler(httpd_req_t *req)
     
     if (wifi_saved && mqtt_saved) {
         ESP_LOGI(TAG, "Configuration saved successfully");
-        const size_t len = _binary___web_success_html_gz_end - _binary___web_success_html_gz_start;
+        const size_t len = success_html_gz_end - success_html_gz_start;
         httpd_resp_set_type(req, "text/html; charset=utf-8");
         httpd_resp_set_hdr(req, "Content-Encoding", "gzip");
-        httpd_resp_send(req, (const char*)_binary___web_success_html_gz_start, len);
+        httpd_resp_send(req, (const char*)success_html_gz_start, len);
         
         // Schedule restart after sending response
         vTaskDelay(pdMS_TO_TICKS(2000));
