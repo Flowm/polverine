@@ -32,6 +32,8 @@
 #include "config.h"
 #include "led_control.h"
 #include "protocol_common.h"
+#include "sensor_data_broker.h"
+#include "sensor_webserver.h"
 #include "wifi_provisioning.h"
 
 extern void bmv080_app_start();
@@ -148,6 +150,11 @@ void app_main(void) {
         }
     }
 
+    // Initialize sensor data broker
+    ESP_LOGI(TAG, "Initializing sensor data broker...");
+    sensor_broker_init();
+    ESP_LOGI(TAG, "Sensor data broker initialized");
+
     ESP_LOGI(TAG, "Starting BMV080 application...");
     bmv080_app_start();
     ESP_LOGI(TAG, "BMV080 application started");
@@ -159,6 +166,14 @@ void app_main(void) {
     ESP_LOGI(TAG, "Starting MQTT application...");
     mqtt_app_start();
     ESP_LOGI(TAG, "MQTT application started");
+
+    // Start sensor data web server
+    ESP_LOGI(TAG, "Starting sensor data web server...");
+    if (sensor_webserver_start() == ESP_OK) {
+        ESP_LOGI(TAG, "Sensor data web server started successfully");
+    } else {
+        ESP_LOGE(TAG, "Failed to start sensor data web server");
+    }
 
     // Example LED usage:
     // led_flash(LED_GREEN);                    // Quick success indication

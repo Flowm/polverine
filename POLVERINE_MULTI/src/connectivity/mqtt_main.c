@@ -598,9 +598,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
 void mqtt_app_start(void) {
     ESP_LOGI(TAG, "Starting Home Assistant MQTT application...");
 
-    // Initialize sensor data broker
-    sensor_broker_init();
-
     if (config_load_mqtt(&current_mqtt_config, shortId)) {
         mqtt_config_loaded = true;
         ESP_LOGI(TAG, "MQTT configuration loaded: URI=%s, ClientID=%s", current_mqtt_config.uri, current_mqtt_config.client_id);
