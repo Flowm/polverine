@@ -9,9 +9,9 @@
 
 #pragma once
 
-#include "sdkconfig.h"
 #include "esp_err.h"
 #include "esp_netif.h"
+#include "sdkconfig.h"
 
 #ifdef __cplusplus
 extern "C" {

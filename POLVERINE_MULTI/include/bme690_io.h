@@ -5,11 +5,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /* Includes ------------------------------------------------------------------*/
 #include "driver/i2c_master.h"
-#include "bme69x.h"
 
+#include "bme69x.h"
 
 /* Exported functions prototypes ---------------------------------------------*/
 esp_err_t bme690_i2c_init(void);
@@ -24,7 +23,6 @@ void bme69x_delay_us(uint32_t period, void *intf_ptr);
 
 /* Interface initialization */
 void bme69x_interface_init(struct bme69x_dev *bme, uint8_t intf, uint8_t sen_no);
-
 
 #ifdef __cplusplus
 }

@@ -15,7 +15,6 @@
 extern "C" {
 #endif
 
-
 void wifi_start(void);
 void wifi_stop(void);
 esp_err_t wifi_sta_do_connect(wifi_config_t wifi_config, bool wait);
@@ -26,8 +25,6 @@ void wifi_shutdown(void);
 esp_err_t wifi_connect(void);
 void ethernet_shutdown(void);
 esp_err_t ethernet_connect(void);
-
-
 
 #ifdef __cplusplus
 }

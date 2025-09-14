@@ -7,35 +7,32 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 
-#include <stdio.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <string.h>
-#include "esp_wifi.h"
-#include "esp_system.h"
-#include "nvs_flash.h"
 #include "esp_event.h"
-#include "esp_netif.h"
-#include "protocol_common.h"
-
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
-#include "freertos/queue.h"
-
-#include "lwip/sockets.h"
-#include "lwip/dns.h"
-#include "lwip/netdb.h"
-
 #include "esp_log.h"
 #include "esp_mac.h"
-#include "mqtt_client.h"
-#include "led_control.h"
+#include "esp_netif.h"
 #include "esp_pm.h"
-#include "config.h"
-#include "wifi_provisioning.h"
-#include "button_handler.h"
+#include "esp_system.h"
+#include "esp_wifi.h"
+#include "lwip/dns.h"
+#include "lwip/netdb.h"
+#include "lwip/sockets.h"
+#include "nvs_flash.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#include "freertos/semphr.h"
+#include "freertos/task.h"
+#include "mqtt_client.h"
 
+#include "button_handler.h"
+#include "config.h"
+#include "led_control.h"
+#include "protocol_common.h"
+#include "wifi_provisioning.h"
 
 extern void bmv080_app_start();
 extern void bme690_app_start();
@@ -46,32 +43,27 @@ char shortId[7] = {0};
 
 extern void mqtt_default_init(const char *id);
 
-void pm_init(void)
-{
-static const char *TAG = "power_management";
-    #if CONFIG_PM_ENABLE
-        esp_pm_config_t pm_config = {
-            .max_freq_mhz = 160,
-            .min_freq_mhz = 80,
-            .light_sleep_enable = false  // Disable light sleep to improve WiFi stability
-        };
+void pm_init(void) {
+    static const char *TAG = "power_management";
+#if CONFIG_PM_ENABLE
+    esp_pm_config_t pm_config = {
+        .max_freq_mhz = 160,
+        .min_freq_mhz = 80,
+        .light_sleep_enable = false // Disable light sleep to improve WiFi stability
+    };
 
-        esp_err_t err = esp_pm_configure(&pm_config);
-        if (err != ESP_OK) {
-            ESP_LOGE(TAG, "Failed to configure power management: %s", esp_err_to_name(err));
-        } else {
-            ESP_LOGI(TAG, "Power management configured successfully");
-        }
-    #else
-        ESP_LOGW(TAG, "Power management is not enabled in sdkconfig");
-    #endif
+    esp_err_t err = esp_pm_configure(&pm_config);
+    if (err != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to configure power management: %s", esp_err_to_name(err));
+    } else {
+        ESP_LOGI(TAG, "Power management configured successfully");
+    }
+#else
+    ESP_LOGW(TAG, "Power management is not enabled in sdkconfig");
+#endif
 }
 
-
-
-
-void app_main(void)
-{
+void app_main(void) {
 
     uint8_t mac[6];
     esp_efuse_mac_get_default(mac);
@@ -99,12 +91,12 @@ void app_main(void)
     ESP_LOGI(TAG, "Initializing NVS flash...");
     ESP_ERROR_CHECK(nvs_flash_init());
     ESP_LOGI(TAG, "NVS flash initialized");
-    
+
     // Initialize configuration system
     if (!config_init()) {
         ESP_LOGE(TAG, "Failed to initialize configuration system");
     }
-    
+
     // Initialize button handler for configuration reset
     button_handler_init();
 
@@ -119,15 +111,15 @@ void app_main(void)
     // Check if provisioning is needed
     if (provisioning_is_needed()) {
         ESP_LOGI(TAG, "No WiFi credentials found. Starting provisioning...");
-        
+
         // Initialize WiFi
         esp_netif_create_default_wifi_ap();
         wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
         ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-        
+
         // Start provisioning
         provisioning_start(shortId);
-        
+
         // Keep the provisioning running
         while (provisioning_is_active()) {
             vTaskDelay(pdMS_TO_TICKS(1000));
@@ -139,14 +131,14 @@ void app_main(void)
         if (ret != ESP_OK) {
             ESP_LOGW(TAG, "Network connection failed with error: 0x%x", ret);
             ESP_LOGI(TAG, "Starting provisioning mode...");
-            
+
             // Failed to connect, start provisioning
             esp_netif_create_default_wifi_ap();
             wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
             ESP_ERROR_CHECK(esp_wifi_init(&cfg));
-            
+
             provisioning_start(shortId);
-            
+
             // Keep the provisioning running
             while (provisioning_is_active()) {
                 vTaskDelay(pdMS_TO_TICKS(1000));
@@ -167,8 +159,6 @@ void app_main(void)
     ESP_LOGI(TAG, "Starting MQTT application...");
     mqtt_app_start();
     ESP_LOGI(TAG, "MQTT application started");
-
-
 
     // Example LED usage:
     // led_flash(LED_GREEN);                    // Quick success indication

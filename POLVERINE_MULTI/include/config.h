@@ -1,7 +1,7 @@
 /**
  * @file config.h
  * @brief Configuration management for Polverine system
- * 
+ *
  * This file handles loading configuration from NVS (Non-Volatile Storage)
  * with fallback to environment-based defaults.
  */

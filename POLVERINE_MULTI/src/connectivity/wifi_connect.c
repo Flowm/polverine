@@ -13,27 +13,26 @@
  */
 
 #include <string.h>
-#include "protocol_common.h"
-#include "common_private.h"
 #include "esp_log.h"
-#include "nvs_flash.h"
-
-#include "esp_netif.h"
-#include "lwip/ip4_addr.h"
 #include "esp_mac.h"
+#include "esp_netif.h"
 #include "esp_wifi_types.h"
+#include "lwip/ip4_addr.h"
+#include "nvs_flash.h"
 #include "freertos/timers.h"
+
+#include "common_private.h"
 #include "config.h"
+#include "protocol_common.h"
 
 #define CONFIG_POLVERINE_WIFI_CONN_MAX_RETRY 3
-#define DHCP_RETRY_INTERVAL_MS 60000 // 1 minute
+#define DHCP_RETRY_INTERVAL_MS               60000 // 1 minute
 
 // Secrets moved to external configuration
-#define POLVERINE_WIFI_SCAN_METHOD WIFI_ALL_CHANNEL_SCAN
-#define POLVERINE_WIFI_CONNECT_AP_SORT_METHOD WIFI_CONNECT_AP_BY_SIGNAL
+#define POLVERINE_WIFI_SCAN_METHOD              WIFI_ALL_CHANNEL_SCAN
+#define POLVERINE_WIFI_CONNECT_AP_SORT_METHOD   WIFI_CONNECT_AP_BY_SIGNAL
 #define POLVERINE_WIFI_SCAN_AUTH_MODE_THRESHOLD WIFI_AUTH_WPA2_PSK
-#define POLVERINE_NETIF_DESC_STA "polverine_sta"
-
+#define POLVERINE_NETIF_DESC_STA                "polverine_sta"
 
 static const char *TAG = "connect";
 static esp_netif_t *s_example_sta_netif = NULL;
@@ -49,15 +48,9 @@ esp_err_t retry_dhcp(void);
 static polverine_wifi_config_t current_wifi_config = {0};
 static bool wifi_config_loaded = false;
 
-
-
-
-
 static int s_retry_num = 0;
 
-static void example_handler_on_wifi_disconnect(void *arg, esp_event_base_t event_base,
-                               int32_t event_id, void *event_data)
-{
+static void example_handler_on_wifi_disconnect(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     ESP_LOGI(TAG, "WiFi disconnect event received");
     s_retry_num++;
     ESP_LOGI(TAG, "Retry attempt: %d/%d", s_retry_num, CONFIG_POLVERINE_WIFI_CONN_MAX_RETRY);
@@ -84,9 +77,7 @@ static void example_handler_on_wifi_disconnect(void *arg, esp_event_base_t event
     ESP_ERROR_CHECK(err);
 }
 
-static void polverine_handler_on_wifi_connect(void *esp_netif, esp_event_base_t event_base,
-                            int32_t event_id, void *event_data)
-{
+static void polverine_handler_on_wifi_connect(void *esp_netif, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     ESP_LOGI(TAG, "WiFi connected event received");
 
     // Get more details about the connection
@@ -95,20 +86,37 @@ static void polverine_handler_on_wifi_connect(void *esp_netif, esp_event_base_t 
     if (err == ESP_OK) {
         ESP_LOGI(TAG, "Connected to SSID: %s", ap_info.ssid);
         ESP_LOGI(TAG, "Channel: %d, RSSI: %d", ap_info.primary, ap_info.rssi);
-        ESP_LOGI(TAG, "BSSID: "MACSTR, MAC2STR(ap_info.bssid));
+        ESP_LOGI(TAG, "BSSID: " MACSTR, MAC2STR(ap_info.bssid));
 
         // Log authentication mode
         const char *auth_mode = "UNKNOWN";
         switch (ap_info.authmode) {
-            case WIFI_AUTH_OPEN: auth_mode = "OPEN"; break;
-            case WIFI_AUTH_WEP: auth_mode = "WEP"; break;
-            case WIFI_AUTH_WPA_PSK: auth_mode = "WPA_PSK"; break;
-            case WIFI_AUTH_WPA2_PSK: auth_mode = "WPA2_PSK"; break;
-            case WIFI_AUTH_WPA_WPA2_PSK: auth_mode = "WPA_WPA2_PSK"; break;
-            case WIFI_AUTH_WPA2_ENTERPRISE: auth_mode = "WPA2_ENTERPRISE"; break;
-            case WIFI_AUTH_WPA3_PSK: auth_mode = "WPA3_PSK"; break;
-            case WIFI_AUTH_WPA2_WPA3_PSK: auth_mode = "WPA2_WPA3_PSK"; break;
-            default: break;
+        case WIFI_AUTH_OPEN:
+            auth_mode = "OPEN";
+            break;
+        case WIFI_AUTH_WEP:
+            auth_mode = "WEP";
+            break;
+        case WIFI_AUTH_WPA_PSK:
+            auth_mode = "WPA_PSK";
+            break;
+        case WIFI_AUTH_WPA2_PSK:
+            auth_mode = "WPA2_PSK";
+            break;
+        case WIFI_AUTH_WPA_WPA2_PSK:
+            auth_mode = "WPA_WPA2_PSK";
+            break;
+        case WIFI_AUTH_WPA2_ENTERPRISE:
+            auth_mode = "WPA2_ENTERPRISE";
+            break;
+        case WIFI_AUTH_WPA3_PSK:
+            auth_mode = "WPA3_PSK";
+            break;
+        case WIFI_AUTH_WPA2_WPA3_PSK:
+            auth_mode = "WPA2_WPA3_PSK";
+            break;
+        default:
+            break;
         }
         ESP_LOGI(TAG, "Authentication mode: %s", auth_mode);
     } else {
@@ -122,10 +130,17 @@ static void polverine_handler_on_wifi_connect(void *esp_netif, esp_event_base_t 
     if (err == ESP_OK) {
         const char *status_str = "UNKNOWN";
         switch (dhcp_status) {
-            case ESP_NETIF_DHCP_INIT: status_str = "INIT"; break;
-            case ESP_NETIF_DHCP_STARTED: status_str = "STARTED"; break;
-            case ESP_NETIF_DHCP_STOPPED: status_str = "STOPPED"; break;
-            default: break;
+        case ESP_NETIF_DHCP_INIT:
+            status_str = "INIT";
+            break;
+        case ESP_NETIF_DHCP_STARTED:
+            status_str = "STARTED";
+            break;
+        case ESP_NETIF_DHCP_STOPPED:
+            status_str = "STOPPED";
+            break;
+        default:
+            break;
         }
         ESP_LOGI(TAG, "DHCP client status: %s", status_str);
     } else {
@@ -135,9 +150,7 @@ static void polverine_handler_on_wifi_connect(void *esp_netif, esp_event_base_t 
     ESP_LOGI(TAG, "Waiting for IP address assignment...");
 }
 
-static void polverine_handler_on_sta_got_ip(void *arg, esp_event_base_t event_base,
-                      int32_t event_id, void *event_data)
-{
+static void polverine_handler_on_sta_got_ip(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data) {
     ESP_LOGI(TAG, "Got IP event received");
     s_retry_num = 0;
     ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
@@ -160,9 +173,7 @@ static void polverine_handler_on_sta_got_ip(void *arg, esp_event_base_t event_ba
     }
 }
 
-
-void wifi_start(void)
-{
+void wifi_start(void) {
     ESP_LOGI(TAG, "Starting wifi_start...");
 
     ESP_LOGI(TAG, "Initializing WiFi with default config...");
@@ -191,9 +202,7 @@ void wifi_start(void)
     ESP_LOGI(TAG, "WiFi started successfully");
 }
 
-
-void wifi_stop(void)
-{
+void wifi_stop(void) {
     esp_err_t err = esp_wifi_stop();
     if (err == ESP_ERR_WIFI_NOT_INIT) {
         return;
@@ -205,9 +214,7 @@ void wifi_stop(void)
     s_example_sta_netif = NULL;
 }
 
-
-esp_err_t wifi_sta_do_connect(wifi_config_t wifi_config, bool wait)
-{
+esp_err_t wifi_sta_do_connect(wifi_config_t wifi_config, bool wait) {
     ESP_LOGI(TAG, "Starting wifi_sta_do_connect...");
 
     if (wait) {
@@ -227,7 +234,8 @@ esp_err_t wifi_sta_do_connect(wifi_config_t wifi_config, bool wait)
     ESP_LOGI(TAG, "Registering IP handler...");
     ESP_ERROR_CHECK(esp_event_handler_register(IP_EVENT, IP_EVENT_STA_GOT_IP, &polverine_handler_on_sta_got_ip, NULL));
     ESP_LOGI(TAG, "Registering connect handler...");
-    ESP_ERROR_CHECK(esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_CONNECTED, &polverine_handler_on_wifi_connect, s_example_sta_netif));
+    ESP_ERROR_CHECK(
+        esp_event_handler_register(WIFI_EVENT, WIFI_EVENT_STA_CONNECTED, &polverine_handler_on_wifi_connect, s_example_sta_netif));
     ESP_LOGI(TAG, "All event handlers registered");
 
     ESP_LOGI(TAG, "Connecting to SSID: %s...", wifi_config.sta.ssid);
@@ -274,8 +282,7 @@ esp_err_t wifi_sta_do_connect(wifi_config_t wifi_config, bool wait)
     return ESP_OK;
 }
 
-esp_err_t wifi_sta_do_disconnect(void)
-{
+esp_err_t wifi_sta_do_disconnect(void) {
     ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, WIFI_EVENT_STA_DISCONNECTED, &example_handler_on_wifi_disconnect));
     ESP_ERROR_CHECK(esp_event_handler_unregister(IP_EVENT, IP_EVENT_STA_GOT_IP, &polverine_handler_on_sta_got_ip));
     ESP_ERROR_CHECK(esp_event_handler_unregister(WIFI_EVENT, WIFI_EVENT_STA_CONNECTED, &polverine_handler_on_wifi_connect));
@@ -285,15 +292,13 @@ esp_err_t wifi_sta_do_disconnect(void)
     return esp_wifi_disconnect();
 }
 
-void wifi_shutdown(void)
-{
+void wifi_shutdown(void) {
     wifi_sta_do_disconnect();
     wifi_stop();
 }
 
 // Function to retry DHCP after using static IP
-esp_err_t retry_dhcp(void)
-{
+esp_err_t retry_dhcp(void) {
     if (!s_using_static_ip) {
         ESP_LOGI(TAG, "Not using static IP, no need to retry DHCP");
         return ESP_OK;
@@ -343,15 +348,13 @@ esp_err_t retry_dhcp(void)
 }
 
 // Timer callback to retry DHCP
-void dhcp_retry_timer_callback(TimerHandle_t xTimer)
-{
+void dhcp_retry_timer_callback(TimerHandle_t xTimer) {
     ESP_LOGI(TAG, "DHCP retry timer triggered");
     retry_dhcp();
 }
 
 // Function to set a static IP address as a fallback
-esp_err_t set_static_ip(void)
-{
+esp_err_t set_static_ip(void) {
     ESP_LOGI(TAG, "Setting static IP address as fallback...");
 
     // Stop DHCP client
@@ -366,11 +369,11 @@ esp_err_t set_static_ip(void)
     // Set static IP address (192.168.1.250)
     esp_netif_ip_info_t ip_info;
     IP4_ADDR(&ip_info.ip, 192, 168, 1, 250);
-    IP4_ADDR(&ip_info.gw, 192, 168, 1, 1);  // Assuming gateway is 192.168.1.1
+    IP4_ADDR(&ip_info.gw, 192, 168, 1, 1); // Assuming gateway is 192.168.1.1
     IP4_ADDR(&ip_info.netmask, 255, 255, 255, 0);
 
-    ESP_LOGI(TAG, "Setting static IP: " IPSTR ", Gateway: " IPSTR ", Netmask: " IPSTR,
-             IP2STR(&ip_info.ip), IP2STR(&ip_info.gw), IP2STR(&ip_info.netmask));
+    ESP_LOGI(TAG, "Setting static IP: " IPSTR ", Gateway: " IPSTR ", Netmask: " IPSTR, IP2STR(&ip_info.ip), IP2STR(&ip_info.gw),
+        IP2STR(&ip_info.netmask));
 
     err = esp_netif_set_ip_info(s_example_sta_netif, &ip_info);
     if (err != ESP_OK) {
@@ -395,13 +398,9 @@ esp_err_t set_static_ip(void)
 
     // Create a timer to periodically retry DHCP
     if (s_dhcp_retry_timer == NULL) {
-        s_dhcp_retry_timer = xTimerCreate(
-            "dhcp_retry_timer",
-            pdMS_TO_TICKS(DHCP_RETRY_INTERVAL_MS),
-            pdTRUE,  // Auto reload
-            NULL,
-            dhcp_retry_timer_callback
-        );
+        s_dhcp_retry_timer = xTimerCreate("dhcp_retry_timer", pdMS_TO_TICKS(DHCP_RETRY_INTERVAL_MS),
+            pdTRUE, // Auto reload
+            NULL, dhcp_retry_timer_callback);
 
         if (s_dhcp_retry_timer == NULL) {
             ESP_LOGE(TAG, "Failed to create DHCP retry timer");
@@ -415,8 +414,7 @@ esp_err_t set_static_ip(void)
     return ESP_OK;
 }
 
-esp_err_t wifi_connect(void)
-{
+esp_err_t wifi_connect(void) {
     ESP_LOGI(TAG, "Starting wifi_connect...");
 
     ESP_LOGI(TAG, "Loading WiFi configuration from storage...");
@@ -428,12 +426,12 @@ esp_err_t wifi_connect(void)
         wifi_config_loaded = false;
         return ESP_FAIL;
     }
-    
+
     if (!wifi_config_loaded || strlen(current_wifi_config.ssid) == 0) {
         ESP_LOGE(TAG, "No valid WiFi configuration");
         return ESP_FAIL;
     }
-    
+
     ESP_LOGI(TAG, "WiFi configuration loaded: SSID=%s", current_wifi_config.ssid);
 
     ESP_LOGI(TAG, "Starting WiFi...");
@@ -441,14 +439,15 @@ esp_err_t wifi_connect(void)
     ESP_LOGI(TAG, "WiFi started, preparing connection configuration...");
 
     wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = "",
-            .password = "",
-            .scan_method = POLVERINE_WIFI_SCAN_METHOD,
-            .sort_method = POLVERINE_WIFI_CONNECT_AP_SORT_METHOD,
-            .threshold.rssi = 0,
-            .threshold.authmode = POLVERINE_WIFI_SCAN_AUTH_MODE_THRESHOLD,
-        },
+        .sta =
+            {
+                .ssid = "",
+                .password = "",
+                .scan_method = POLVERINE_WIFI_SCAN_METHOD,
+                .sort_method = POLVERINE_WIFI_CONNECT_AP_SORT_METHOD,
+                .threshold.rssi = 0,
+                .threshold.authmode = POLVERINE_WIFI_SCAN_AUTH_MODE_THRESHOLD,
+            },
     };
 
     ESP_LOGI(TAG, "Copying SSID and password from configuration...");

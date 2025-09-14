@@ -4,10 +4,12 @@
  */
 
 #include "config.h"
-#include "nvs_flash.h"
-#include "nvs.h"
-#include "esp_log.h"
+
 #include <string.h>
+#include "esp_log.h"
+#include "nvs_flash.h"
+
+#include "nvs.h"
 
 static const char *TAG = "config";
 
@@ -15,12 +17,12 @@ static const char *TAG = "config";
 #define CONFIG_NAMESPACE "polverine_cfg"
 
 // NVS keys
-#define KEY_WIFI_SSID     "wifi_ssid"
-#define KEY_WIFI_PASS     "wifi_pass"
-#define KEY_MQTT_URI      "mqtt_uri"
-#define KEY_MQTT_USER     "mqtt_user"
-#define KEY_MQTT_PASS     "mqtt_pass"
-#define KEY_MQTT_CLIENT   "mqtt_client"
+#define KEY_WIFI_SSID   "wifi_ssid"
+#define KEY_WIFI_PASS   "wifi_pass"
+#define KEY_MQTT_URI    "mqtt_uri"
+#define KEY_MQTT_USER   "mqtt_user"
+#define KEY_MQTT_PASS   "mqtt_pass"
+#define KEY_MQTT_CLIENT "mqtt_client"
 
 // Default values (can be overridden at compile time)
 #ifndef DEFAULT_WIFI_SSID
@@ -45,23 +47,21 @@ static const char *TAG = "config";
 
 static nvs_handle_t config_handle = 0;
 
-bool config_init(void)
-{
+bool config_init(void) {
     esp_err_t err = nvs_open(CONFIG_NAMESPACE, NVS_READWRITE, &config_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to open NVS namespace: %s", esp_err_to_name(err));
         return false;
     }
-    
+
     ESP_LOGI(TAG, "Configuration system initialized");
     return true;
 }
 
-static bool load_string_from_nvs(const char *key, char *value, size_t max_len, const char *default_value)
-{
+static bool load_string_from_nvs(const char *key, char *value, size_t max_len, const char *default_value) {
     size_t length = max_len;
     esp_err_t err = nvs_get_str(config_handle, key, value, &length);
-    
+
     if (err == ESP_OK) {
         ESP_LOGI(TAG, "Loaded %s from NVS", key);
         return true;
@@ -81,129 +81,112 @@ static bool load_string_from_nvs(const char *key, char *value, size_t max_len, c
     }
 }
 
-static bool save_string_to_nvs(const char *key, const char *value)
-{
+static bool save_string_to_nvs(const char *key, const char *value) {
     esp_err_t err = nvs_set_str(config_handle, key, value);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to save %s: %s", key, esp_err_to_name(err));
         return false;
     }
-    
+
     err = nvs_commit(config_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to commit %s: %s", key, esp_err_to_name(err));
         return false;
     }
-    
+
     ESP_LOGI(TAG, "Saved %s to NVS", key);
     return true;
 }
 
-bool config_load_wifi(polverine_wifi_config_t *config)
-{
+bool config_load_wifi(polverine_wifi_config_t *config) {
     if (!config || !config_handle) {
         return false;
     }
-    
-    bool ssid_loaded = load_string_from_nvs(KEY_WIFI_SSID, config->ssid, 
-                                            sizeof(config->ssid), DEFAULT_WIFI_SSID);
-    bool pass_loaded = load_string_from_nvs(KEY_WIFI_PASS, config->password, 
-                                            sizeof(config->password), DEFAULT_WIFI_PASS);
-    
+
+    bool ssid_loaded = load_string_from_nvs(KEY_WIFI_SSID, config->ssid, sizeof(config->ssid), DEFAULT_WIFI_SSID);
+    bool pass_loaded = load_string_from_nvs(KEY_WIFI_PASS, config->password, sizeof(config->password), DEFAULT_WIFI_PASS);
+
     if (!ssid_loaded || strlen(config->ssid) == 0) {
         ESP_LOGE(TAG, "WiFi SSID not configured");
         return false;
     }
-    
+
     ESP_LOGI(TAG, "WiFi configuration loaded: SSID=%s", config->ssid);
     return true;
 }
 
-bool config_save_wifi(const polverine_wifi_config_t *config)
-{
+bool config_save_wifi(const polverine_wifi_config_t *config) {
     if (!config || !config_handle) {
         return false;
     }
-    
-    bool success = save_string_to_nvs(KEY_WIFI_SSID, config->ssid) &&
-                   save_string_to_nvs(KEY_WIFI_PASS, config->password);
-    
+
+    bool success = save_string_to_nvs(KEY_WIFI_SSID, config->ssid) && save_string_to_nvs(KEY_WIFI_PASS, config->password);
+
     if (success) {
         ESP_LOGI(TAG, "WiFi configuration saved");
     }
-    
+
     return success;
 }
 
-bool config_load_mqtt(polverine_mqtt_config_t *config, const char *device_id)
-{
+bool config_load_mqtt(polverine_mqtt_config_t *config, const char *device_id) {
     if (!config || !config_handle) {
         return false;
     }
-    
+
     // Load URI
-    if (!load_string_from_nvs(KEY_MQTT_URI, config->uri, 
-                             sizeof(config->uri), DEFAULT_MQTT_URI)) {
+    if (!load_string_from_nvs(KEY_MQTT_URI, config->uri, sizeof(config->uri), DEFAULT_MQTT_URI)) {
         strcpy(config->uri, DEFAULT_MQTT_URI);
     }
-    
+
     // Load username
-    load_string_from_nvs(KEY_MQTT_USER, config->username, 
-                        sizeof(config->username), DEFAULT_MQTT_USER);
-    
+    load_string_from_nvs(KEY_MQTT_USER, config->username, sizeof(config->username), DEFAULT_MQTT_USER);
+
     // Load password
-    load_string_from_nvs(KEY_MQTT_PASS, config->password, 
-                        sizeof(config->password), DEFAULT_MQTT_PASS);
-    
+    load_string_from_nvs(KEY_MQTT_PASS, config->password, sizeof(config->password), DEFAULT_MQTT_PASS);
+
     // Load or generate client ID
-    if (!load_string_from_nvs(KEY_MQTT_CLIENT, config->client_id, 
-                             sizeof(config->client_id), NULL)) {
+    if (!load_string_from_nvs(KEY_MQTT_CLIENT, config->client_id, sizeof(config->client_id), NULL)) {
         // Generate client ID from device ID
-        snprintf(config->client_id, sizeof(config->client_id), 
-                 "polverine_%s", device_id ? device_id : "unknown");
+        snprintf(config->client_id, sizeof(config->client_id), "polverine_%s", device_id ? device_id : "unknown");
     }
-    
-    ESP_LOGI(TAG, "MQTT configuration loaded: URI=%s, ClientID=%s", 
-             config->uri, config->client_id);
+
+    ESP_LOGI(TAG, "MQTT configuration loaded: URI=%s, ClientID=%s", config->uri, config->client_id);
     return true;
 }
 
-bool config_save_mqtt(const polverine_mqtt_config_t *config)
-{
+bool config_save_mqtt(const polverine_mqtt_config_t *config) {
     if (!config || !config_handle) {
         return false;
     }
-    
-    bool success = save_string_to_nvs(KEY_MQTT_URI, config->uri) &&
-                   save_string_to_nvs(KEY_MQTT_USER, config->username) &&
-                   save_string_to_nvs(KEY_MQTT_PASS, config->password) &&
-                   save_string_to_nvs(KEY_MQTT_CLIENT, config->client_id);
-    
+
+    bool success = save_string_to_nvs(KEY_MQTT_URI, config->uri) && save_string_to_nvs(KEY_MQTT_USER, config->username) &&
+                   save_string_to_nvs(KEY_MQTT_PASS, config->password) && save_string_to_nvs(KEY_MQTT_CLIENT, config->client_id);
+
     if (success) {
         ESP_LOGI(TAG, "MQTT configuration saved");
     }
-    
+
     return success;
 }
 
-bool config_clear_all(void)
-{
+bool config_clear_all(void) {
     if (!config_handle) {
         return false;
     }
-    
+
     esp_err_t err = nvs_erase_all(config_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to erase configuration: %s", esp_err_to_name(err));
         return false;
     }
-    
+
     err = nvs_commit(config_handle);
     if (err != ESP_OK) {
         ESP_LOGE(TAG, "Failed to commit erase: %s", esp_err_to_name(err));
         return false;
     }
-    
+
     ESP_LOGI(TAG, "All configuration cleared");
     return true;
 }

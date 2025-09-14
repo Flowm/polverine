@@ -9,11 +9,10 @@
 extern "C" {
 #endif /* __cplusplus */
 
-
 /* Includes ------------------------------------------------------------------*/
 #include "driver/spi_master.h"
-#include "bmv080.h"
 
+#include "bmv080.h"
 
 /* Exported functions prototypes ---------------------------------------------*/
 esp_err_t spi_init(spi_device_handle_t *spi);
@@ -25,7 +24,6 @@ int8_t bmv080_spi_write_16bit(bmv080_sercom_handle_t handle, uint16_t header, co
 
 /* Delay function */
 int8_t bmv080_delay(uint32_t period);
-
 
 #ifdef __cplusplus
 }

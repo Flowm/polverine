@@ -1,8 +1,9 @@
 #ifndef SENSOR_BUFFER_H
 #define SENSOR_BUFFER_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
+
 #include "sensor_data_broker.h"
 
 #ifdef __cplusplus
@@ -18,7 +19,7 @@ typedef struct {
     bme690_data_t samples[MAX_SENSOR_SAMPLES];
     uint16_t write_index;
     uint16_t sample_count;
-    uint32_t total_samples;  // For sequence tracking
+    uint32_t total_samples; // For sequence tracking
 } bme690_sensor_buffer_t;
 
 /**

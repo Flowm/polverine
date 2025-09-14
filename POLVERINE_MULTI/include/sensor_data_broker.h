@@ -1,8 +1,8 @@
 #ifndef SENSOR_DATA_BROKER_H
 #define SENSOR_DATA_BROKER_H
 
-#include <stdint.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -12,31 +12,31 @@ extern "C" {
  * @brief BME690 sensor data structure
  */
 typedef struct {
-    float temperature;              // Compensated temperature in °C
-    float pressure;                 // Raw pressure in Pa
-    float humidity;                 // Compensated humidity in %RH
-    float iaq;                      // Indoor Air Quality index
-    uint8_t iaq_accuracy;           // IAQ accuracy (0-3)
-    float co2_equivalent;           // CO2 equivalent in ppm
-    float breath_voc_equivalent;    // Breath VOC equivalent in ppm
-    float static_iaq;               // Static IAQ value
-    float gas_percentage;           // Gas sensor percentage
-    bool stabilization_status;      // Gas sensor stabilization status
-    bool run_in_status;             // Gas sensor run-in status
-    uint32_t timestamp;             // Timestamp in milliseconds
+    float temperature;           // Compensated temperature in °C
+    float pressure;              // Raw pressure in Pa
+    float humidity;              // Compensated humidity in %RH
+    float iaq;                   // Indoor Air Quality index
+    uint8_t iaq_accuracy;        // IAQ accuracy (0-3)
+    float co2_equivalent;        // CO2 equivalent in ppm
+    float breath_voc_equivalent; // Breath VOC equivalent in ppm
+    float static_iaq;            // Static IAQ value
+    float gas_percentage;        // Gas sensor percentage
+    bool stabilization_status;   // Gas sensor stabilization status
+    bool run_in_status;          // Gas sensor run-in status
+    uint32_t timestamp;          // Timestamp in milliseconds
 } bme690_data_t;
 
 /**
  * @brief BMV080 sensor data structure
  */
 typedef struct {
-    float pm10;                     // PM10 mass concentration in µg/m³
-    float pm25;                     // PM2.5 mass concentration in µg/m³
-    float pm1;                      // PM1 mass concentration in µg/m³
-    bool is_obstructed;             // Sensor obstruction status
-    bool is_outside_range;          // Measurement out of range status
-    float runtime;                  // Runtime in seconds
-    uint32_t timestamp;             // Timestamp in milliseconds
+    float pm10;            // PM10 mass concentration in µg/m³
+    float pm25;            // PM2.5 mass concentration in µg/m³
+    float pm1;             // PM1 mass concentration in µg/m³
+    bool is_obstructed;    // Sensor obstruction status
+    bool is_outside_range; // Measurement out of range status
+    float runtime;         // Runtime in seconds
+    uint32_t timestamp;    // Timestamp in milliseconds
 } bmv080_data_t;
 
 /**
