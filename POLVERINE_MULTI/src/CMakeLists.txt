@@ -8,6 +8,6 @@ file(GLOB web_files "../web/*.html.gz")
 
 idf_component_register(
     SRCS ${app_sources}
-    INCLUDE_DIRS "."
+    INCLUDE_DIRS "." "../include"
     EMBED_FILES ${web_files}
 )

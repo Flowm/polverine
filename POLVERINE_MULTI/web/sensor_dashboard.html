@@ -22,11 +22,18 @@ h1{text-align:center;color:#2c3e50;margin-bottom:30px}
 .refresh-btn:hover{background:#0056b3}
 .last-update{text-align:center;color:#6c757d;font-size:0.9em;margin-top:10px}
 .unit{font-size:0.8em;color:#6c757d}
+.config-link{display:inline-block;background:#6c757d;color:white;text-decoration:none;padding:8px 16px;border-radius:5px;font-size:0.9em;margin-bottom:20px;transition:background 0.3s}
+.config-link:hover{background:#495057}
+.header-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px}
+.header-row h1{margin:0}
 </style>
 </head>
 <body>
 <div class='container'>
+<div class='header-row'>
 <h1>Polverine Sensor Dashboard</h1>
+<a href='/config' class='config-link'>⚙️ Configuration</a>
+</div>
 
 <div class='sensor-grid'>
 <div class='sensor-card'>

@@ -33,7 +33,7 @@
 #include "led_control.h"
 #include "protocol_common.h"
 #include "sensor_data_broker.h"
-#include "sensor_webserver.h"
+#include "webserver.h"
 #include "wifi_provisioning.h"
 
 extern void bmv080_app_start();
@@ -110,43 +110,34 @@ void app_main(void) {
     ESP_ERROR_CHECK(esp_event_loop_create_default());
     ESP_LOGI(TAG, "Default event loop created");
 
-    // Check if provisioning is needed
+    // Initialize WiFi based on provisioning status
     if (provisioning_is_needed()) {
-        ESP_LOGI(TAG, "No WiFi credentials found. Starting provisioning...");
+        ESP_LOGI(TAG, "No WiFi credentials found. Creating WiFi AP...");
 
-        // Initialize WiFi
+        // Create WiFi AP
         esp_netif_create_default_wifi_ap();
         wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
         ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
-        // Start provisioning
+        // Start provisioning (this will configure the AP)
         provisioning_start(shortId);
-
-        // Keep the provisioning running
-        while (provisioning_is_active()) {
-            vTaskDelay(pdMS_TO_TICKS(1000));
-        }
     } else {
-        // Normal operation - connect to configured WiFi
-        ESP_LOGI(TAG, "Starting network connection...");
+        ESP_LOGI(TAG, "WiFi credentials found. Connecting to WiFi...");
+
+        // Connect to configured WiFi
         esp_err_t ret = polverine_connect();
         if (ret != ESP_OK) {
-            ESP_LOGW(TAG, "Network connection failed with error: 0x%x", ret);
-            ESP_LOGI(TAG, "Starting provisioning mode...");
+            ESP_LOGW(TAG, "WiFi connection failed with error: 0x%x", ret);
+            ESP_LOGI(TAG, "Falling back to provisioning mode...");
 
-            // Failed to connect, start provisioning
+            // Failed to connect, create AP and start provisioning
             esp_netif_create_default_wifi_ap();
             wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
             ESP_ERROR_CHECK(esp_wifi_init(&cfg));
 
             provisioning_start(shortId);
-
-            // Keep the provisioning running
-            while (provisioning_is_active()) {
-                vTaskDelay(pdMS_TO_TICKS(1000));
-            }
         } else {
-            ESP_LOGI(TAG, "Network connection established");
+            ESP_LOGI(TAG, "WiFi connection established");
         }
     }
 
@@ -167,12 +158,12 @@ void app_main(void) {
     mqtt_app_start();
     ESP_LOGI(TAG, "MQTT application started");
 
-    // Start sensor data web server
-    ESP_LOGI(TAG, "Starting sensor data web server...");
-    if (sensor_webserver_start() == ESP_OK) {
-        ESP_LOGI(TAG, "Sensor data web server started successfully");
+    // Start unified web server
+    ESP_LOGI(TAG, "Starting unified web server...");
+    if (webserver_start() == ESP_OK) {
+        ESP_LOGI(TAG, "Unified web server started successfully");
     } else {
-        ESP_LOGE(TAG, "Failed to start sensor data web server");
+        ESP_LOGE(TAG, "Failed to start unified web server");
     }
 
     // Example LED usage:

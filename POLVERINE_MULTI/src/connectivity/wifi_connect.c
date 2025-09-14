@@ -464,3 +464,33 @@ esp_err_t wifi_connect(void) {
     }
     return ret;
 }
+
+esp_err_t polverine_connect(void) {
+    static const char *CONNECT_TAG = "polverine_connect";
+    ESP_LOGI(CONNECT_TAG, "Starting polverine_connect...");
+
+    ESP_LOGI(CONNECT_TAG, "Calling wifi_connect()...");
+    esp_err_t ret = wifi_connect();
+    if (ret != ESP_OK) {
+        ESP_LOGE(CONNECT_TAG, "wifi_connect failed with error: 0x%x", ret);
+        return ESP_FAIL;
+    }
+    ESP_LOGI(CONNECT_TAG, "wifi_connect successful");
+
+    ESP_LOGI(CONNECT_TAG, "Registering shutdown handler...");
+    ESP_ERROR_CHECK(esp_register_shutdown_handler(&wifi_shutdown));
+    ESP_LOGI(CONNECT_TAG, "Shutdown handler registered");
+
+    ESP_LOGI(CONNECT_TAG, "polverine_connect completed successfully");
+    return ESP_OK;
+}
+
+esp_err_t polverine_disconnect(void) {
+    wifi_shutdown();
+    ESP_ERROR_CHECK(esp_unregister_shutdown_handler(&wifi_shutdown));
+    return ESP_OK;
+}
+
+bool is_our_netif(const char *prefix, esp_netif_t *netif) {
+    return strncmp(prefix, esp_netif_get_desc(netif), strlen(prefix) - 1) == 0;
+}

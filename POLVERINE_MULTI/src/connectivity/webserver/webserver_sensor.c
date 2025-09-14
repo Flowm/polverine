@@ -1,16 +1,13 @@
 /**
- * @file sensor_webserver.c
- * @brief Sensor data web server implementation
+ * @file webserver_sensor.c
+ * @brief Sensor data web server handlers
  */
-
-#include "sensor_webserver.h"
 
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 #include <sys/param.h>
 #include "esp_err.h"
-#include "esp_event.h"
 #include "esp_http_server.h"
 #include "esp_log.h"
 #include "esp_system.h"
@@ -20,12 +17,9 @@
 #include "freertos/task.h"
 
 #include "sensor_data_broker.h"
+#include "webserver.h"
 
-static const char *TAG = "SENSOR_WEBSERVER";
-
-// Web server handle
-static httpd_handle_t server = NULL;
-static bool server_running = false;
+static const char *TAG = "WEBSERVER_SENSOR";
 
 // Latest sensor data
 static bme690_data_t latest_bme690_data = {0};
@@ -143,63 +137,28 @@ static esp_err_t data_get_handler(httpd_req_t *req) {
     return ret;
 }
 
-esp_err_t sensor_webserver_start(void) {
-    if (server_running) {
-        ESP_LOGW(TAG, "Sensor web server is already running");
-        return ESP_OK;
-    }
+esp_err_t webserver_register_sensor_handlers(httpd_handle_t server) {
+    ESP_LOGI(TAG, "Registering sensor data handlers");
 
-    // Register with sensor data broker
+    // Register with sensor data broker for callbacks
     sensor_broker_register_bme690_callback(bme690_data_callback);
     sensor_broker_register_bmv080_callback(bmv080_data_callback);
 
-    // Configure HTTP server
-    httpd_config_t config = HTTPD_DEFAULT_CONFIG();
-    config.lru_purge_enable = true;
-    config.max_open_sockets = 7;
-    config.max_resp_headers = 16;
-    config.recv_wait_timeout = 10;
-    config.send_wait_timeout = 10;
-    config.server_port = 80; // Use port 80 for the sensor data server
-
-    ESP_LOGI(TAG, "Starting sensor data web server on port %d", config.server_port);
-
-    if (httpd_start(&server, &config) == ESP_OK) {
-        // Register URI handlers
-        httpd_uri_t dashboard_uri = {.uri = "/", .method = HTTP_GET, .handler = dashboard_get_handler, .user_ctx = NULL};
-        httpd_register_uri_handler(server, &dashboard_uri);
-
-        httpd_uri_t data_uri = {.uri = "/data", .method = HTTP_GET, .handler = data_get_handler, .user_ctx = NULL};
-        httpd_register_uri_handler(server, &data_uri);
-
-        server_running = true;
-        ESP_LOGI(TAG, "Sensor data web server started successfully");
-        ESP_LOGI(TAG, "Access dashboard at: http://[device-ip]/");
-        ESP_LOGI(TAG, "Access JSON data at: http://[device-ip]/data");
-        return ESP_OK;
-    } else {
-        ESP_LOGE(TAG, "Failed to start sensor data web server");
-        return ESP_FAIL;
-    }
-}
-
-esp_err_t sensor_webserver_stop(void) {
-    if (!server_running) {
-        ESP_LOGW(TAG, "Sensor web server is not running");
-        return ESP_OK;
+    // Register URI handlers
+    httpd_uri_t dashboard_uri = {.uri = "/", .method = HTTP_GET, .handler = dashboard_get_handler, .user_ctx = NULL};
+    esp_err_t ret = httpd_register_uri_handler(server, &dashboard_uri);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register dashboard handler");
+        return ret;
     }
 
-    if (server) {
-        httpd_stop(server);
-        server = NULL;
-        server_running = false;
-        ESP_LOGI(TAG, "Sensor data web server stopped");
-        return ESP_OK;
+    httpd_uri_t data_uri = {.uri = "/data", .method = HTTP_GET, .handler = data_get_handler, .user_ctx = NULL};
+    ret = httpd_register_uri_handler(server, &data_uri);
+    if (ret != ESP_OK) {
+        ESP_LOGE(TAG, "Failed to register data handler");
+        return ret;
     }
 
-    return ESP_FAIL;
-}
-
-bool sensor_webserver_is_running(void) {
-    return server_running;
+    ESP_LOGI(TAG, "Sensor data handlers registered successfully");
+    return ESP_OK;
 }
