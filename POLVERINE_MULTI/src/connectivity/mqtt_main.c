@@ -4,7 +4,6 @@
 #include "esp_mac.h"
 #include "esp_wifi.h"
 #include "nvs_flash.h"
-#include "cJSON.h"
 #include "driver/temperature_sensor.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -78,13 +77,13 @@ static void send_ha_discovery() {
     char topic[256];
     char payload[1024];
 
-    // Create device object for all sensors
-    cJSON *device = cJSON_CreateObject();
-    cJSON_AddStringToObject(device, "identifiers", shortId);
-    cJSON_AddStringToObject(device, "name", device_name);
-    cJSON_AddStringToObject(device, "manufacturer", "BlackIoT");
-    cJSON_AddStringToObject(device, "model", "Polverine Sensor");
-    char *device_str = cJSON_PrintUnformatted(device);
+    char device_json[256];
+    int dev_len = snprintf(device_json, sizeof(device_json),
+        "{\"identifiers\":\"%s\",\"name\":\"%s\",\"manufacturer\":\"BlackIoT\",\"model\":\"Polverine Sensor\"}", shortId, device_name);
+    if (dev_len <= 0 || dev_len >= (int)sizeof(device_json)) {
+        ESP_LOGE(TAG, "Device JSON truncated (%d)", dev_len);
+        return;
+    }
 
     // BME690 Temperature
     snprintf(topic, sizeof(topic), TEMPLATE_HA_DISCOVERY_BME690_TEMP, shortId);
@@ -97,7 +96,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"°C\","
         "\"value_template\":\"{{ value_json.temperature }}\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 Humidity
@@ -111,7 +110,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"%%\","
         "\"value_template\":\"{{ value_json.humidity }}\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 Pressure
@@ -125,7 +124,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"hPa\","
         "\"value_template\":\"{{ value_json.pressure | float / 100 }}\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 IAQ
@@ -138,7 +137,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"IAQ\","
         "\"value_template\":\"{{ value_json.iaq }}\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 CO2
@@ -152,7 +151,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"ppm\","
         "\"value_template\":\"{{ value_json.co2 }}\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 VOC
@@ -166,7 +165,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"ppm\","
         "\"value_template\":\"{{ value_json.voc }}\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BMV080 PM10
@@ -180,7 +179,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"µg/m³\","
         "\"value_template\":\"{{ value_json.pm10 }}\","
         "\"device\":%s}",
-        shortId, bmv080_state_topic, availability_topic, device_str);
+        shortId, bmv080_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BMV080 PM2.5
@@ -194,7 +193,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"µg/m³\","
         "\"value_template\":\"{{ value_json.pm25 }}\","
         "\"device\":%s}",
-        shortId, bmv080_state_topic, availability_topic, device_str);
+        shortId, bmv080_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BMV080 PM1
@@ -208,7 +207,7 @@ static void send_ha_discovery() {
         "\"unit_of_measurement\":\"µg/m³\","
         "\"value_template\":\"{{ value_json.pm1 }}\","
         "\"device\":%s}",
-        shortId, bmv080_state_topic, availability_topic, device_str);
+        shortId, bmv080_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 IAQ Accuracy
@@ -222,7 +221,7 @@ static void send_ha_discovery() {
         "\"icon\":\"mdi:gauge\","
         "\"state_class\":\"measurement\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 Static IAQ
@@ -236,7 +235,7 @@ static void send_ha_discovery() {
         "\"icon\":\"mdi:air-filter\","
         "\"state_class\":\"measurement\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 Gas Percentage
@@ -251,7 +250,7 @@ static void send_ha_discovery() {
         "\"icon\":\"mdi:percent\","
         "\"state_class\":\"measurement\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 Stabilization Status
@@ -266,7 +265,7 @@ static void send_ha_discovery() {
         "\"value_template\":\"{{ value_json.stabilization_status }}\","
         "\"icon\":\"mdi:check-circle\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BME690 Run-in Status
@@ -281,7 +280,7 @@ static void send_ha_discovery() {
         "\"value_template\":\"{{ value_json.run_in_status }}\","
         "\"icon\":\"mdi:timer-check\","
         "\"device\":%s}",
-        shortId, bme690_state_topic, availability_topic, device_str);
+        shortId, bme690_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BMV080 Obstructed
@@ -296,7 +295,7 @@ static void send_ha_discovery() {
         "\"value_template\":\"{{ value_json.obstructed }}\","
         "\"device_class\":\"problem\","
         "\"device\":%s}",
-        shortId, bmv080_state_topic, availability_topic, device_str);
+        shortId, bmv080_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // BMV080 Out of Range
@@ -311,7 +310,7 @@ static void send_ha_discovery() {
         "\"value_template\":\"{{ value_json.out_of_range }}\","
         "\"device_class\":\"problem\","
         "\"device\":%s}",
-        shortId, bmv080_state_topic, availability_topic, device_str);
+        shortId, bmv080_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // ESP32 WiFi RSSI
@@ -326,7 +325,7 @@ static void send_ha_discovery() {
         "\"value_template\":\"{{ value_json.rssi }}\","
         "\"icon\":\"mdi:wifi\","
         "\"device\":%s}",
-        shortId, system_state_topic, availability_topic, device_str);
+        shortId, system_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // ESP32 Free Heap
@@ -341,7 +340,7 @@ static void send_ha_discovery() {
         "\"icon\":\"mdi:memory\","
         "\"state_class\":\"measurement\","
         "\"device\":%s}",
-        shortId, system_state_topic, availability_topic, device_str);
+        shortId, system_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // ESP32 Uptime
@@ -356,7 +355,7 @@ static void send_ha_discovery() {
         "\"icon\":\"mdi:timer-outline\","
         "\"state_class\":\"total_increasing\","
         "\"device\":%s}",
-        shortId, system_state_topic, availability_topic, device_str);
+        shortId, system_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
 
     // ESP32 CPU Temperature
@@ -372,11 +371,8 @@ static void send_ha_discovery() {
         "\"icon\":\"mdi:thermometer\","
         "\"state_class\":\"measurement\","
         "\"device\":%s}",
-        shortId, system_state_topic, availability_topic, device_str);
+        shortId, system_state_topic, availability_topic, device_json);
     esp_mqtt_client_publish(client, topic, payload, 0, 1, true);
-
-    cJSON_Delete(device);
-    free(device_str);
 
     ESP_LOGI(TAG, "Home Assistant discovery messages sent");
 }
@@ -386,30 +382,23 @@ static void mqtt_bme690_data_handler(const bme690_data_t *data, bool is_averaged
     if (!isConnected || data == NULL)
         return;
 
-    // Create Home Assistant JSON directly from data structure
-    cJSON *ha_json = cJSON_CreateObject();
-    cJSON_AddNumberToObject(ha_json, "temperature", data->temperature);
-    cJSON_AddNumberToObject(ha_json, "humidity", data->humidity);
-    cJSON_AddNumberToObject(ha_json, "pressure", data->pressure);
-    cJSON_AddNumberToObject(ha_json, "iaq", data->iaq);
-    cJSON_AddNumberToObject(ha_json, "co2", data->co2_equivalent);
-    cJSON_AddNumberToObject(ha_json, "voc", data->breath_voc_equivalent);
-    cJSON_AddNumberToObject(ha_json, "iaq_accuracy", data->iaq_accuracy);
-    cJSON_AddNumberToObject(ha_json, "static_iaq", data->static_iaq);
-    cJSON_AddNumberToObject(ha_json, "gas_percentage", data->gas_percentage);
-    cJSON_AddStringToObject(ha_json, "stabilization_status", data->stabilization_status ? "true" : "false");
-    cJSON_AddStringToObject(ha_json, "run_in_status", data->run_in_status ? "true" : "false");
+    char payload[320];
+    int written = snprintf(payload, sizeof(payload),
+        "{\"temperature\":%.2f,\"humidity\":%.2f,\"pressure\":%.2f,"
+        "\"iaq\":%.2f,\"co2\":%.2f,\"voc\":%.2f,"
+        "\"iaq_accuracy\":%u,\"static_iaq\":%.2f,\"gas_percentage\":%.2f,"
+        "\"stabilization_status\":%s,\"run_in_status\":%s,"
+        "\"data_type\":\"%s\",\"timestamp\":%u}",
+        data->temperature, data->humidity, data->pressure, data->iaq, data->co2_equivalent, data->breath_voc_equivalent,
+        (unsigned)data->iaq_accuracy, data->static_iaq, data->gas_percentage, data->stabilization_status ? "true" : "false",
+        data->run_in_status ? "true" : "false", is_averaged ? "averaged" : "raw", (unsigned)data->timestamp);
 
-    // Add metadata
-    cJSON_AddStringToObject(ha_json, "data_type", is_averaged ? "averaged" : "raw");
-    cJSON_AddNumberToObject(ha_json, "timestamp", data->timestamp);
+    if (written <= 0 || written >= (int)sizeof(payload)) {
+        ESP_LOGE(TAG, "BME690 JSON payload truncated (size=%d)", written);
+        return;
+    }
 
-    char *payload = cJSON_PrintUnformatted(ha_json);
     esp_mqtt_client_publish(client, bme690_state_topic, payload, 0, 1, 0);
-
-    cJSON_Delete(ha_json);
-    free(payload);
-
     ESP_LOGI(TAG, "Published %s BME690 data", is_averaged ? "averaged" : "raw");
 }
 
@@ -418,21 +407,20 @@ static void mqtt_bmv080_data_handler(const bmv080_data_t *data) {
     if (!isConnected || data == NULL)
         return;
 
-    // Create Home Assistant JSON directly from data structure
-    cJSON *ha_json = cJSON_CreateObject();
-    cJSON_AddNumberToObject(ha_json, "pm10", data->pm10);
-    cJSON_AddNumberToObject(ha_json, "pm25", data->pm25);
-    cJSON_AddNumberToObject(ha_json, "pm1", data->pm1);
-    cJSON_AddStringToObject(ha_json, "obstructed", data->is_obstructed ? "true" : "false");
-    cJSON_AddStringToObject(ha_json, "out_of_range", data->is_outside_range ? "true" : "false");
-    cJSON_AddNumberToObject(ha_json, "runtime", data->runtime);
-    cJSON_AddNumberToObject(ha_json, "timestamp", data->timestamp);
+    char payload[192];
+    int written = snprintf(payload, sizeof(payload),
+        "{\"pm10\":%.2f,\"pm25\":%.2f,\"pm1\":%.2f,"
+        "\"obstructed\":%s,\"out_of_range\":%s,"
+        "\"runtime\":%.2f,\"timestamp\":%u}",
+        data->pm10, data->pm25, data->pm1, data->is_obstructed ? "true" : "false", data->is_outside_range ? "true" : "false", data->runtime,
+        (unsigned)data->timestamp);
 
-    char *payload = cJSON_PrintUnformatted(ha_json);
+    if (written <= 0 || written >= (int)sizeof(payload)) {
+        ESP_LOGE(TAG, "BMV080 JSON payload truncated (size=%d)", written);
+        return;
+    }
+
     esp_mqtt_client_publish(client, bmv080_state_topic, payload, 0, 1, 0);
-
-    cJSON_Delete(ha_json);
-    free(payload);
 
     ESP_LOGI(TAG, "Published BMV080 data");
 }
@@ -447,39 +435,36 @@ void system_metrics_publish(void) {
     if (!isConnected)
         return;
 
-    // Create JSON for system metrics
-    cJSON *sys_json = cJSON_CreateObject();
-
-    // Get WiFi RSSI
+    int32_t rssi = -127;
     wifi_ap_record_t ap_info;
     if (esp_wifi_sta_get_ap_info(&ap_info) == ESP_OK) {
-        cJSON_AddNumberToObject(sys_json, "rssi", ap_info.rssi);
+        rssi = ap_info.rssi;
     }
 
-    // Get free heap
-    cJSON_AddNumberToObject(sys_json, "free_heap", esp_get_free_heap_size());
+    uint32_t free_heap = esp_get_free_heap_size();
+    uint32_t uptime = xTaskGetTickCount() * portTICK_PERIOD_MS / 1000;
 
-    // Get uptime in seconds
-    cJSON_AddNumberToObject(sys_json, "uptime", xTaskGetTickCount() * portTICK_PERIOD_MS / 1000);
-
-    // Get CPU temperature
     static temperature_sensor_handle_t temp_handle = NULL;
     if (temp_handle == NULL) {
         temperature_sensor_config_t temp_sensor_config = TEMPERATURE_SENSOR_CONFIG_DEFAULT(10, 80);
         temperature_sensor_install(&temp_sensor_config, &temp_handle);
         temperature_sensor_enable(temp_handle);
     }
-
-    float cpu_temp;
-    if (temperature_sensor_get_celsius(temp_handle, &cpu_temp) == ESP_OK) {
-        cJSON_AddNumberToObject(sys_json, "cpu_temp", cpu_temp);
+    float cpu_temp = -273.0f;
+    if (temperature_sensor_get_celsius(temp_handle, &cpu_temp) != ESP_OK) {
+        cpu_temp = -273.0f;
     }
 
-    char *sys_payload = cJSON_PrintUnformatted(sys_json);
-    esp_mqtt_client_publish(client, system_state_topic, sys_payload, 0, 1, 0); // QoS 1 for reliability
+    char payload[160];
+    int len = snprintf(payload, sizeof(payload), "{\"rssi\":%ld,\"free_heap\":%lu,\"uptime\":%lu,\"cpu_temp\":%.2f}", (long)rssi,
+        (unsigned long)free_heap, (unsigned long)uptime, cpu_temp);
 
-    cJSON_Delete(sys_json);
-    free(sys_payload);
+    if (len <= 0 || len >= (int)sizeof(payload)) {
+        ESP_LOGE(TAG, "System metrics JSON truncated (len=%d)", len);
+        return;
+    }
+
+    esp_mqtt_client_publish(client, system_state_topic, payload, 0, 1, 0);
 }
 
 static void log_error_if_nonzero(const char *message, int error_code) {

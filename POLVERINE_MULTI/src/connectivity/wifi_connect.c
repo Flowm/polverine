@@ -491,5 +491,12 @@ esp_err_t polverine_disconnect(void) {
 }
 
 bool is_our_netif(const char *prefix, esp_netif_t *netif) {
-    return strncmp(prefix, esp_netif_get_desc(netif), strlen(prefix) - 1) == 0;
+    if (prefix == NULL || netif == NULL) {
+        return false;
+    }
+    const char *desc = esp_netif_get_desc(netif);
+    if (desc == NULL) {
+        return false;
+    }
+    return strncmp(prefix, desc, strlen(prefix)) == 0;
 }
