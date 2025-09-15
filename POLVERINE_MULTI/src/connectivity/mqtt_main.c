@@ -387,7 +387,7 @@ static void mqtt_bme690_data_handler(const bme690_data_t *data, bool is_averaged
         "{\"temperature\":%.2f,\"humidity\":%.2f,\"pressure\":%.2f,"
         "\"iaq\":%.2f,\"co2\":%.2f,\"voc\":%.2f,"
         "\"iaq_accuracy\":%u,\"static_iaq\":%.2f,\"gas_percentage\":%.2f,"
-        "\"stabilization_status\":%s,\"run_in_status\":%s,"
+        "\"stabilization_status\":\"%s\",\"run_in_status\":\"%s\","
         "\"data_type\":\"%s\",\"timestamp\":%u}",
         data->temperature, data->humidity, data->pressure, data->iaq, data->co2_equivalent, data->breath_voc_equivalent,
         (unsigned)data->iaq_accuracy, data->static_iaq, data->gas_percentage, data->stabilization_status ? "true" : "false",
@@ -410,7 +410,7 @@ static void mqtt_bmv080_data_handler(const bmv080_data_t *data) {
     char payload[192];
     int written = snprintf(payload, sizeof(payload),
         "{\"pm10\":%.2f,\"pm25\":%.2f,\"pm1\":%.2f,"
-        "\"obstructed\":%s,\"out_of_range\":%s,"
+        "\"obstructed\":\"%s\",\"out_of_range\":\"%s\","
         "\"runtime\":%.2f,\"timestamp\":%u}",
         data->pm10, data->pm25, data->pm1, data->is_obstructed ? "true" : "false", data->is_outside_range ? "true" : "false", data->runtime,
         (unsigned)data->timestamp);
@@ -510,38 +510,6 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
             ESP_LOGI(TAG, "  Username: %s", current_mqtt_config.username);
             ESP_LOGI(TAG, "  Password: %s", current_mqtt_config.password);
             ESP_LOGI(TAG, "  Client ID: %s", current_mqtt_config.client_id);
-
-            // Parse URI to show host and port separately
-            const char *uri = current_mqtt_config.uri;
-            if (strncmp(uri, "mqtt://", 7) == 0) {
-                const char *host_port = uri + 7;
-                char *colon = strchr(host_port, ':');
-                if (colon) {
-                    char host[256];
-                    int host_len = colon - host_port;
-                    strncpy(host, host_port, host_len);
-                    host[host_len] = '\0';
-                    const char *port = colon + 1;
-                    ESP_LOGI(TAG, "  Host: %s, Port: %s", host, port);
-                } else {
-                    ESP_LOGI(TAG, "  Host: %s, Port: 1883 (default)", host_port);
-                }
-            } else if (strncmp(uri, "mqtts://", 8) == 0) {
-                const char *host_port = uri + 8;
-                char *colon = strchr(host_port, ':');
-                if (colon) {
-                    char host[256];
-                    int host_len = colon - host_port;
-                    strncpy(host, host_port, host_len);
-                    host[host_len] = '\0';
-                    const char *port = colon + 1;
-                    ESP_LOGI(TAG, "  Host: %s, Port: %s (TLS)", host, port);
-                } else {
-                    ESP_LOGI(TAG, "  Host: %s, Port: 8883 (default TLS)", host_port);
-                }
-            } else {
-                ESP_LOGI(TAG, "  URI format: %s", uri);
-            }
         } else {
             ESP_LOGE(TAG, "MQTT configuration incomplete, cannot log connection details");
         }
@@ -621,38 +589,6 @@ void mqtt_app_start(void) {
     ESP_LOGI(TAG, "  Client ID: %s", mqtt_cfg.credentials.client_id);
     ESP_LOGI(TAG, "  Keepalive: %d seconds", mqtt_cfg.session.keepalive);
     ESP_LOGI(TAG, "  Timeout: %d ms", mqtt_cfg.network.timeout_ms);
-
-    // Parse URI to show host and port separately
-    const char *uri = mqtt_cfg.broker.address.uri;
-    if (strncmp(uri, "mqtt://", 7) == 0) {
-        const char *host_port = uri + 7;
-        char *colon = strchr(host_port, ':');
-        if (colon) {
-            char host[256];
-            int host_len = colon - host_port;
-            strncpy(host, host_port, host_len);
-            host[host_len] = '\0';
-            const char *port = colon + 1;
-            ESP_LOGI(TAG, "  Host: %s, Port: %s", host, port);
-        } else {
-            ESP_LOGI(TAG, "  Host: %s, Port: 1883 (default)", host_port);
-        }
-    } else if (strncmp(uri, "mqtts://", 8) == 0) {
-        const char *host_port = uri + 8;
-        char *colon = strchr(host_port, ':');
-        if (colon) {
-            char host[256];
-            int host_len = colon - host_port;
-            strncpy(host, host_port, host_len);
-            host[host_len] = '\0';
-            const char *port = colon + 1;
-            ESP_LOGI(TAG, "  Host: %s, Port: %s (TLS)", host, port);
-        } else {
-            ESP_LOGI(TAG, "  Host: %s, Port: 8883 (default TLS)", host_port);
-        }
-    } else {
-        ESP_LOGI(TAG, "  URI format: %s", uri);
-    }
 
     client = esp_mqtt_client_init(&mqtt_cfg);
     if (client == NULL) {
