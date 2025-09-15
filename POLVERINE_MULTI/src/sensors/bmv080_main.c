@@ -54,7 +54,7 @@ void bmv080_task(void *pvParameter) {
 
     esp_err_t comm_status = spi_init(&hspi);
     if (comm_status != ESP_OK) {
-        printf("Initializing the SPI communication interface failed with status %d\r\n", (int)comm_status);
+        ESP_LOGE(TAG, "Initializing the SPI communication interface failed with status %d", (int)comm_status);
         while (1)
             ;
     }
@@ -65,30 +65,28 @@ void bmv080_task(void *pvParameter) {
     char git_hash[12] = {0};
     int32_t commits_ahead = 0;
 
-    bmv080_delay(5000);
-    printf("\r\nPOLVERINE home assistant demo starting on %s\r\n", shortId);
-
+    bmv080_delay(1000);
     bmv080_status_code_t bmv080_current_status = E_BMV080_OK;
     bmv080_current_status = bmv080_get_driver_version(&major, &minor, &patch, git_hash, &commits_ahead);
     if (bmv080_current_status != E_BMV080_OK) {
-        printf("Getting BMV080 sensor driver version failed with BMV080 status %d\r\n", bmv080_current_status);
+        ESP_LOGE(TAG, "Getting BMV080 sensor driver version failed with BMV080 status %d", bmv080_current_status);
         while (1)
             ;
     }
-    printf("BMV080 sensor driver version: %d.%d.%d.%s.%ld\r\n", major, minor, patch, git_hash, commits_ahead);
+    ESP_LOGI(TAG, "BMV080 sensor driver version: %d.%d.%d.%s.%ld", major, minor, patch, git_hash, commits_ahead);
 
     bmv080_handle_t handle = {0};
 
     bmv080_current_status = bmv080_open(&handle, hspi, bmv080_spi_read_16bit, bmv080_spi_write_16bit, bmv080_delay);
     if (bmv080_current_status != E_BMV080_OK) {
-        printf("Initializing BMV080 failed with status %d\r\n", (int)bmv080_current_status);
+        ESP_LOGE(TAG, "Initializing BMV080 failed with status %d", (int)bmv080_current_status);
         while (1)
             ;
     }
 
     bmv080_current_status = bmv080_reset(handle);
     if (bmv080_current_status != E_BMV080_OK) {
-        printf("Resetting BMV080 sensor unit failed with BMV080 status %d\r\n", (int)bmv080_current_status);
+        ESP_LOGE(TAG, "Resetting BMV080 sensor unit failed with BMV080 status %d", (int)bmv080_current_status);
         led_set(LED_RED, LED_ON);
         while (1)
             ;
@@ -102,26 +100,26 @@ void bmv080_task(void *pvParameter) {
     uint16_t duty_cycling_period = 0;
     bmv080_current_status = bmv080_get_parameter(handle, "duty_cycling_period", (void *)&duty_cycling_period);
 
-    printf("Default duty_cycling_period: %d s\r\n", duty_cycling_period);
+    ESP_LOGI(TAG, "Default duty_cycling_period: %d s", duty_cycling_period);
 
     /* Set custom parameter "duty_cycling_period" */
     duty_cycling_period = PLVN_CFG_BMV080_DUTY_CYCLE_PERIOD_S;
     bmv080_current_status = bmv080_set_parameter(handle, "duty_cycling_period", (void *)&duty_cycling_period);
 
-    printf("Customized duty_cycling_period: %d s\r\n", duty_cycling_period);
+    ESP_LOGI(TAG, "Customized duty_cycling_period: %d s", duty_cycling_period);
 
     /* Set high precision measurement algorithm before starting measurement */
     bmv080_measurement_algorithm_t algorithm = E_BMV080_MEASUREMENT_ALGORITHM_HIGH_PRECISION;
     bmv080_current_status = bmv080_set_parameter(handle, "measurement_algorithm", (void *)&algorithm);
     if (bmv080_current_status != E_BMV080_OK) {
-        printf("Setting high precision algorithm failed with status %d\r\n", (int)bmv080_current_status);
+        ESP_LOGE(TAG, "Setting high precision algorithm failed with status %d", (int)bmv080_current_status);
     } else {
-        printf("Measurement algorithm set to HIGH_PRECISION\r\n");
+        ESP_LOGI(TAG, "Measurement algorithm set to HIGH_PRECISION");
     }
 
     bmv080_current_status = bmv080_start_duty_cycling_measurement(handle, get_tick_ms, E_BMV080_DUTY_CYCLING_MODE_0);
     if (bmv080_current_status != E_BMV080_OK) {
-        printf("Starting BMV080 failed with status %d\r\n", (int)bmv080_current_status);
+        ESP_LOGE(TAG, "Starting BMV080 failed with status %d", (int)bmv080_current_status);
         led_set(LED_RED, LED_ON);
         while (1)
             ;
@@ -132,7 +130,7 @@ void bmv080_task(void *pvParameter) {
         bmv080_delay(100); // Poll every 100ms for faster response
         bmv080_current_status = bmv080_serve_interrupt(handle, bmv080_data_ready, NULL);
         if (bmv080_current_status != E_BMV080_OK) {
-            printf("Reading BMV080 failed with status %d\r\n", (int)bmv080_current_status);
+            ESP_LOGE(TAG, "Reading BMV080 failed with status %d", (int)bmv080_current_status);
             led_set(LED_RED, LED_ON);
             led_set(LED_RED, LED_OFF);
         }

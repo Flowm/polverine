@@ -72,19 +72,19 @@ void bme690_task(void *) {
     ESP_LOGI(TAG, "BSEC initialized with CONTINUOUS sampling rate (1Hz)");
 
     if (ret.bme69x_status != BME69X_OK) {
-        printf("ERROR while initializing BME68x: %d\r\n", ret.bme69x_status);
+        ESP_LOGE(TAG, "ERROR while initializing BME68x: %d", ret.bme69x_status);
         return;
     }
     if (ret.bsec_status < BSEC_OK) {
-        printf("\nERROR while initializing BSEC library: %d\n", ret.bsec_status);
+        ESP_LOGE(TAG, "ERROR while initializing BSEC library: %d", ret.bsec_status);
         return;
     } else if (ret.bsec_status > BSEC_OK) {
-        printf("\nWARNING while initializing BSEC library: %d\n", ret.bsec_status);
+        ESP_LOGW(TAG, "WARNING while initializing BSEC library: %d", ret.bsec_status);
     }
 
     ret.bsec_status = bsec_get_version(bsecInstance, &version);
 
-    printf("BSEC Version : %u.%u.%u.%u\r\n", version.major, version.minor, version.major_bugfix, version.minor_bugfix);
+    ESP_LOGI(TAG, "BSEC Version : %u.%u.%u.%u", version.major, version.minor, version.major_bugfix, version.minor_bugfix);
     /*
     #if (OUTPUT_MODE == IAQ)
         static char *header = "Time(ms), IAQ,  IAQ_accuracy, Static_IAQ, Raw_Temperature(degC), Raw_Humidity(%%rH), Comp_Temperature(degC),
